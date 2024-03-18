@@ -5,11 +5,11 @@
 #include "constants.h"
 
 void left(float ang, float speed) {
-  ccw(ang, speed);
+  left(ang, speed);
 }
 
 void right(float ang, float speed) {
-  cw(ang, speed);
+  right(ang, speed);
 }
 
 volatile TDirection dir;
@@ -92,7 +92,7 @@ void sendStatus() {
   // packetType and command files accordingly, then use sendResponse
   // to send out the packet. See sendMessage on how to use sendResponse.
   //
-  Tpacket statusPacket;
+  TPacket statusPacket;
   statusPacket.packetType = PACKET_TYPE_RESPONSE;
   statusPacket.command = RESP_STATUS;
   
@@ -379,7 +379,7 @@ void handleCommand(TPacket *command) {
       break;
     case COMMAND_STOP:
       sendOK();
-      stop((double)command->params[0], (float)command->params[1]);
+      stop();
       break;
     case COMMAND_GET_STATS:
       sendOK();
