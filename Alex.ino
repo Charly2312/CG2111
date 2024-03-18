@@ -187,7 +187,7 @@ void enablePullups() {
 }
 
 // Functions to be called by INT2 and INT3 ISRs.
-ISR (INT3_vect) {
+ISR (INT3_vect) { //leftISR
   switch (dir) {
       //Alex is moving forward
     //increment leftForwardTicks and calculate forwardDist
@@ -217,7 +217,7 @@ ISR (INT3_vect) {
   }
 }
 
-ISR(INT2_vect) {
+ISR(INT2_vect) { //rightISR
   switch (dir) {
       //Alex is moving forward
     //increment rightForwardTicks
