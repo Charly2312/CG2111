@@ -92,6 +92,22 @@ void sendStatus() {
   // packetType and command files accordingly, then use sendResponse
   // to send out the packet. See sendMessage on how to use sendResponse.
   //
+  Tpacket statusPacket;
+  statusPacket.packetType = PACKET_TYPE_RESPONSE;
+  statusPacket.command = RESP_STATUS;
+  
+  statusPacket.params[0] = leftForwardTicks;
+  statusPacket.params[1] = rightForwardTicks;
+  statusPacket.params[2] = leftReverseTicks;
+  statusPacket.params[3] = rightReverseTicks;
+  statusPacket.params[4] = leftForwardTicksTurns;
+  statusPacket.params[5] = rightForwardTicksTurns;
+  statusPacket.params[6] = leftReverseTicksTurns;
+  statusPacket.params[7] = rightReverseTicksTurns;
+  statusPacket.params[8] = forwardDist;
+  statusPacket.params[9] = reverseDist;
+
+  sendResponse(&statusPacket);
 }
 
 void sendMessage(const char *message) {
@@ -333,8 +349,8 @@ void clearCounters() {
 }
 
 // Clears one particular counter
-void clearOneCounter(int which) {
-  clearCounters();
+void clearOneCounter(unsigned long param) {
+  param = 0;
 }
 // Intialize Alex's internal states
 
@@ -349,11 +365,30 @@ void handleCommand(TPacket *command) {
       sendOK();
       forward((double)command->params[0], (float)command->params[1]);
       break;
-
-      /*
-     * Implement code for other commands here.
-     * 
-     */
+    case COMMAND_REVERSE:
+      sendOK();
+      backward((double)command->params[0], (float)command->params[1]);
+      break;
+    case COMMAND_TURN_LEFT:
+      sendOK();
+      left((double)command->params[0], (float)command->params[1]);
+      break;
+    case COMMAND_TURN_RIGHT:
+      sendOK();
+      right((double)command->params[0], (float)command->params[1]);
+      break;
+    case COMMAND_STOP:
+      sendOK();
+      stop((double)command->params[0], (float)command->params[1]);
+      break;
+    case COMMAND_GET_STATS:
+      sendOK();
+      sendStatus();
+      break;
+    case COMMAND_CLEAR_STATS:
+      sendOK();
+      clearOneCounter(command->params[0]);
+      break;
 
     default:
       sendBadCommand();
