@@ -33,13 +33,13 @@ void move(float speed, int direction)
         motorBL.run(BACKWARD);
         motorBR.run(BACKWARD); 
       break;
-      case CW:
+      case CW: //turn right
         motorFL.run(BACKWARD);
         motorFR.run(FORWARD);
         motorBL.run(FORWARD);
         motorBR.run(BACKWARD); 
       break;
-      case CCW:
+      case CCW: //turn left
         motorFL.run(FORWARD);
         motorFR.run(BACKWARD);
         motorBL.run(BACKWARD);
@@ -82,6 +82,6 @@ void cw(float dist, float speed)
 
 void stop()
 {
-  dir = (Tdir) STOP;
+  dir = (TDirection) STOP;
   move(0, STOP);
 }
