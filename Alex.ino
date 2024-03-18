@@ -186,56 +186,52 @@ void enablePullups() {
 
 // Functions to be called by INT2 and INT3 ISRs.
 void leftISR(INT3_vect) {
-  //Alex is moving forward
-  //increment leftForwardTicks and calculate forwardDist
-  if (dir == FORWARD) {
-    leftForwardTicks ++;
-    forwardDist = (unsigned long) ((float) leftForwardTicks / COUNTS_PER_REV * WHEEL_CIRC);
-  }
+  switch (dir) {
+      //Alex is moving forward
+    //increment leftForwardTicks and calculate forwardDist
+    case FORWARD:
+      leftForwardTicks++;
+      forwardDist = (unsigned long)((float)leftForwardTicks / COUNTS_PER_REV * WHEEL_CIRC);
 
-  //Alex is moving backward
-  //increment leftReverseTicks and calculate reverseDist
-  else if (dir == BACKWARD) {
-    leftReverseTicks ++;
-    reverseDist = (unsigned long) ((float) leftReverseTicks / COUNTS_PER_REV * WHEEL_CIRC);
-  }
+    //Alex is moving backward
+    //increment leftReverseTicks and calculate reverseDist
+    case BACKWARD:
+      leftReverseTicks++;
+      reverseDist = (unsigned long)((float)leftReverseTicks / COUNTS_PER_REV * WHEEL_CIRC);
 
-  //Alex is moving to the left
-  //increment leftForwardTicksTurns
-  else if (dir == LEFT) {
-    leftForwardTicksTurns ++;
-  }
+    //Alex is moving to the left
+    //increment leftForwardTicksTurns
+    case LEFT:
+      leftReverseTicksTurns++;
 
-  //Alex is moving to the right
-  //increment RightReverseTicksTurns
-  else if (dir == RIGHT) {
-    leftReverseTicksTurns ++;
+    //Alex is moving to the right
+    //increment RightReverseTicksTurns
+    case RIGHT:
+      leftForwardTicksTurns++;
   }
 }
 
 void rightISR(INT2_vect) {
-  //Alex is moving forward
-  //increment rightForwardTicks
-  if (dir == FORWARD) {
-    rightForwardTicks ++;
-  }
+  switch (dir) {
+      //Alex is moving forward
+    //increment rightForwardTicks
+    case FORWARD:
+      rightForwardTicks++;
 
-  //Alex is moving backward
-  //increment rightReverseTicks
-  else if (dir == BACKWARD) {
-    rightReverseTicks ++;
-  }
+    //Alex is moving backward
+    //increment rightReverseTicks
+    case BACKWARD:
+      rightReverseTicks++;
 
-  //Alex is moving to the left
-  //increment rightReverseTicksTurns
-  else if (dir == LEFT) {
-    rightReverseTicksTurns ++;
-  }
+    //Alex is moving to the left
+    //increment rightReverseTicksTurns
+    case LEFT:
+      rightForwardTicksTurns++;
 
-  //Alex is moving to the right
-  //increment rightForwardTicksTurns
-  else if (dir == RIGHT) {
-    rightForwardTicksTurns ++;
+    //Alex is moving to the right
+    //increment rightForwardTicksTurns
+    case RIGHT:
+      rightReverseTicksTurns++;
   }
 }
 
