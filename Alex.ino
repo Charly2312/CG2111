@@ -194,22 +194,26 @@ ISR (INT3_vect) {
     case FORWARD:
       leftForwardTicks++;
       forwardDist = (unsigned long)((float)leftForwardTicks / COUNTS_PER_REV * WHEEL_CIRC);
+      break; 
 
     //Alex is moving backward
     //increment leftReverseTicks and calculate reverseDist
     case BACKWARD:
       leftReverseTicks++;
       reverseDist = (unsigned long)((float)leftReverseTicks / COUNTS_PER_REV * WHEEL_CIRC);
+      break;
 
     //Alex is moving to the left
     //increment leftForwardTicksTurns
     case LEFT:
       leftReverseTicksTurns++;
+      break;
 
     //Alex is moving to the right
     //increment RightReverseTicksTurns
     case RIGHT:
       leftForwardTicksTurns++;
+      break;
   }
 }
 
@@ -219,21 +223,25 @@ ISR(INT2_vect) {
     //increment rightForwardTicks
     case FORWARD:
       rightForwardTicks++;
+      break;
 
     //Alex is moving backward
     //increment rightReverseTicks
     case BACKWARD:
       rightReverseTicks++;
+      break;
 
     //Alex is moving to the left
     //increment rightReverseTicksTurns
     case LEFT:
       rightForwardTicksTurns++;
+      break;
 
     //Alex is moving to the right
     //increment rightForwardTicksTurns
     case RIGHT:
       rightReverseTicksTurns++;
+      break;
   }
 }
 
