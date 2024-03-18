@@ -66,14 +66,14 @@ void backward(float dist, float speed)
   move(speed, BACKWARD);
 }
 
-//turn left
+//turn left, ccw
 void ccw(float dist, float speed)
 {
   dir = (TDirection) LEFT;
   move(speed, CCW);
 }
 
-//turn right
+//turn right, cw
 void cw(float dist, float speed)
 {
   dir = (TDirection) RIGHT;
@@ -85,3 +85,4 @@ void stop()
   dir = (TDirection) STOP;
   move(0, STOP);
 }
+
