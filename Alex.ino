@@ -14,6 +14,8 @@ void right(float ang, float speed) {
 
 volatile TDirection dir;
 
+
+
 /*
  * Alex's configuration constants
  */
@@ -185,7 +187,7 @@ void enablePullups() {
 }
 
 // Functions to be called by INT2 and INT3 ISRs.
-void leftISR(INT3_vect) {
+ISR (INT3_vect) {
   switch (dir) {
       //Alex is moving forward
     //increment leftForwardTicks and calculate forwardDist
@@ -211,7 +213,7 @@ void leftISR(INT3_vect) {
   }
 }
 
-void rightISR(INT2_vect) {
+ISR(INT2_vect) {
   switch (dir) {
       //Alex is moving forward
     //increment rightForwardTicks
@@ -410,8 +412,7 @@ void handlePacket(TPacket *packet) {
 
 void loop() {
   // Uncomment the code below for Step 2 of Activity 3 in Week 8 Studio 2
-  forward(0, 100);
-
+  //forward(0, 100);
   // Uncomment the code below for Week 9 Studio 2
 
   /*
