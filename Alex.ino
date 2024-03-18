@@ -1,28 +1,69 @@
 #include <serialize.h>
 #include <stdarg.h>
+#include <math.h>
 
 #include "packet.h"
 #include "constants.h"
 
+//New function to estimate number of wheel ticks
+// needed to turn an angle
+unsigned long computeDeltaTicks(float ang) {
+  // We will assume that angular distance moved = linear distance moved in one wheel
+  // revolution. This is probably incorrect but simplifies caluclation.
+  // # of wheel revs to make on full 360 turn is vincentCirc / WHEEL_CIRC
+  // This is for 360 degrees. For ang degrees it will be (ang * alexCirc) / (360 * WHEEL_CIRC)
+  // To convert to ticks, we multiply by COUNTS_PER_REV.
+
+  unsigned long ticks = (unsigned long)((ang * alexCirc * COUNTS_PER_REV) / (360.0 * WHEEL_CIRC)) return ticks;
+}
+
 void left(float ang, float speed) {
+  if (ang == 0)
+    deltaTicks = 99999999;
+  else
+    deltaTicks = computeDeltaTicks(ang);
+
+  targetTicks = leftReverseTicksTurns + deltaTicks;
+
   left(ang, speed);
 }
 
 void right(float ang, float speed) {
+  if (ang == 0)
+    deltaTicks = 99999999;
+  else
+    deltaTicks = computeDeltaTicks(ang);
+
+  targetTicks = rightReverseTicksTurns + deltaTicks;
+
   right(ang, speed);
 }
 
 volatile TDirection dir;
 
-
+//PI, for calculating circumference
+#define PI 3.141592654
 
 /*
  * Alex's configuration constants
  */
 
+// Alex's lenght and breadth in cm
+// These values are what we measured
+#define ALEX_LENGTH 25.8
+#define ALEX_BREADTH 16.0
+
+//Alex's Diagonal. We compute and store this once since
+// it is expensive to compute and never changes
+float alexDiagonal = 30.35
+
+  //Alex's turning circumeference, calculated once.
+  //Assume that Alex "turns on a dime"
+  // PI * alexDiagonal
+  float alexCirc = PI * alexDiagonal;
+
 // Number of ticks per revolution from the
 // wheel encoder.
-
 #define COUNTS_PER_REV 4
 
 // Wheel circumference in cm.
@@ -37,10 +78,7 @@ volatile TDirection dir;
 
 // Store the ticks from Alex's left and
 // right encoders.
-/* old version
-volatile unsigned long leftTicks;
-volatile unsigned long rightTicks;
-*/
+
 volatile unsigned long leftForwardTicks;
 volatile unsigned long rightForwardTicks;
 volatile unsigned long leftReverseTicks;
@@ -60,6 +98,15 @@ volatile unsigned long rightRevs;
 // Forward and backward distance traveled
 volatile unsigned long forwardDist;
 volatile unsigned long reverseDist;
+
+//Variables to keep track of whether we've moved
+//a commanded distance
+unsigned long deltaDist;
+unsigned long newDist;
+
+// Variables to keep track of our turning angle
+unsigned long deltaTicks;
+unsigned long targetTicks;
 
 
 /*
@@ -95,7 +142,7 @@ void sendStatus() {
   TPacket statusPacket;
   statusPacket.packetType = PACKET_TYPE_RESPONSE;
   statusPacket.command = RESP_STATUS;
-  
+
   statusPacket.params[0] = leftForwardTicks;
   statusPacket.params[1] = rightForwardTicks;
   statusPacket.params[2] = leftReverseTicks;
@@ -203,14 +250,14 @@ void enablePullups() {
 }
 
 // Functions to be called by INT2 and INT3 ISRs.
-ISR (INT3_vect) { //leftISR
+ISR(INT3_vect) {  //leftISR
   switch (dir) {
       //Alex is moving forward
     //increment leftForwardTicks and calculate forwardDist
     case FORWARD:
       leftForwardTicks++;
       forwardDist = (unsigned long)((float)leftForwardTicks / COUNTS_PER_REV * WHEEL_CIRC);
-      break; 
+      break;
 
     //Alex is moving backward
     //increment leftReverseTicks and calculate reverseDist
@@ -233,7 +280,7 @@ ISR (INT3_vect) { //leftISR
   }
 }
 
-ISR(INT2_vect) { //rightISR
+ISR(INT2_vect) {  //rightISR
   switch (dir) {
       //Alex is moving forward
     //increment rightForwardTicks
@@ -423,6 +470,9 @@ void waitForHello() {
 
 void setup() {
   // put your setup code here, to run once:
+  alexDiagonal = sqrt((ALEX_LENGTH * ALEX_LENGTH) + (ALEX_BREADTH * ALEX_BREADTH));
+
+  alexCirc = PI * alexDiagonal;
 
   cli();
   setupEINT();
@@ -478,4 +528,45 @@ void loop() {
       } 
       
       */
+  if (deltaDist > 0) {
+    if (dir == FORWARD) {
+      if (forwardDist > newDist) {
+        deltaDist = 0;
+        newDist = 0;
+        stop();
+      }
+    } else if (dir == BACKWARD) {
+      if (reverseDist > newDist) {
+        deltaDist = 0;
+        newDist = 0;
+        stop();
+      }
+    } else
+
+      if (dir == STOP) {
+      deltaDist = 0;
+      newDist = 0;
+      stop();
+    }
+  }
+
+  if (deltaTicks > 0) {
+    if (dir == LEFT) {
+      if (leftReverseTicksTurns >= targetTicks) {
+        deltaTicks = 0;
+        targetTicks = 0;
+        stop();
+      }
+    } else if (dir == RIGHT) {
+      if (rightReverseTicksTurns >= targetTicks) {
+        deltaTicks = 0;
+        targetTicks = 0;
+        stop();
+      }
+    } else if (dir == STOP) {
+      deltaTicks = 0;
+      targetTicks = 0;
+      stop();
+    }
+  }
 }
