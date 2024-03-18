@@ -1,5 +1,10 @@
 #include <AFMotor.h>
 
+extern long deltaDist;
+extern long newDist;
+extern long forwardDist;
+extern long reverseDist;
+
 // Motor control
 #define FRONT_LEFT   4 // M4 on the driver shield
 #define FRONT_RIGHT  1 // M1 on the driver shield
@@ -56,12 +61,27 @@ void move(float speed, int direction)
 
 void forward(float dist, float speed)
 {
+  if(dist > 0) 
+ 	 	deltaDist = dist;  	
+  else 
+ 	 	deltaDist=9999999; 
+ 
+ 	newDist = forwardDist + deltaDist; 
+
   dir = (TDirection) FORWARD;
   move(speed, FORWARD);
 }
 
+//reverse
 void backward(float dist, float speed)
 {
+  if(dist > 0) 
+ 	 	deltaDist = dist;  	
+  else 
+ 	 	deltaDist=9999999; 
+ 
+ 	newDist = reverseDist + deltaDist; 
+
   dir = (TDirection) BACKWARD;
   move(speed, BACKWARD);
 }
