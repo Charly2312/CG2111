@@ -1,10 +1,5 @@
 #include <AFMotor.h>
 
-extern long deltaDist;
-extern long newDist;
-extern long forwardDist;
-extern long reverseDist;
-
 // Motor control
 #define FRONT_LEFT   4 // M4 on the driver shield
 #define FRONT_RIGHT  1 // M1 on the driver shield
