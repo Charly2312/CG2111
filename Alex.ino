@@ -5,40 +5,6 @@
 #include "packet.h"
 #include "constants.h"
 
-//New function to estimate number of wheel ticks
-// needed to turn an angle
-unsigned long computeDeltaTicks(float ang) {
-  // We will assume that angular distance moved = linear distance moved in one wheel
-  // revolution. This is probably incorrect but simplifies caluclation.
-  // # of wheel revs to make on full 360 turn is vincentCirc / WHEEL_CIRC
-  // This is for 360 degrees. For ang degrees it will be (ang * alexCirc) / (360 * WHEEL_CIRC)
-  // To convert to ticks, we multiply by COUNTS_PER_REV.
-
-  unsigned long ticks = (unsigned long)((ang * alexCirc * COUNTS_PER_REV) / (360.0 * WHEEL_CIRC)) return ticks;
-}
-
-void left(float ang, float speed) {
-  if (ang == 0)
-    deltaTicks = 99999999;
-  else
-    deltaTicks = computeDeltaTicks(ang);
-
-  targetTicks = leftReverseTicksTurns + deltaTicks;
-
-  left(ang, speed);
-}
-
-void right(float ang, float speed) {
-  if (ang == 0)
-    deltaTicks = 99999999;
-  else
-    deltaTicks = computeDeltaTicks(ang);
-
-  targetTicks = rightReverseTicksTurns + deltaTicks;
-
-  right(ang, speed);
-}
-
 volatile TDirection dir;
 
 //PI, for calculating circumference
@@ -55,12 +21,12 @@ volatile TDirection dir;
 
 //Alex's Diagonal. We compute and store this once since
 // it is expensive to compute and never changes
-float alexDiagonal = 30.35
+float alexDiagonal = 30.35;
 
   //Alex's turning circumeference, calculated once.
   //Assume that Alex "turns on a dime"
   // PI * alexDiagonal
-  float alexCirc = PI * alexDiagonal;
+float alexCirc = PI * alexDiagonal;
 
 // Number of ticks per revolution from the
 // wheel encoder.
@@ -72,9 +38,6 @@ float alexDiagonal = 30.35
 
 #define WHEEL_CIRC 22
 
-/*
- *    Alex's State Variables
- */
 
 // Store the ticks from Alex's left and
 // right encoders.
@@ -107,6 +70,48 @@ unsigned long newDist;
 // Variables to keep track of our turning angle
 unsigned long deltaTicks;
 unsigned long targetTicks;
+
+
+//New function to estimate number of wheel ticks
+// needed to turn an angle
+unsigned long computeDeltaTicks(float ang) {
+  // We will assume that angular distance moved = linear distance moved in one wheel
+  // revolution. This is probably incorrect but simplifies caluclation.
+  // # of wheel revs to make on full 360 turn is vincentCirc / WHEEL_CIRC
+  // This is for 360 degrees. For ang degrees it will be (ang * alexCirc) / (360 * WHEEL_CIRC)
+  // To convert to ticks, we multiply by COUNTS_PER_REV.
+
+  unsigned long ticks = (unsigned long)((ang * alexCirc * COUNTS_PER_REV) / (360.0 * WHEEL_CIRC)) ;
+  return ticks;
+}
+
+void left(float ang, float speed) {
+  if (ang == 0)
+    deltaTicks = 99999999;
+  else
+    deltaTicks = computeDeltaTicks(ang);
+
+  targetTicks = leftReverseTicksTurns + deltaTicks;
+
+  left(ang, speed);
+}
+
+void right(float ang, float speed) {
+  if (ang == 0)
+    deltaTicks = 99999999;
+  else
+    deltaTicks = computeDeltaTicks(ang);
+
+  targetTicks = rightReverseTicksTurns + deltaTicks;
+
+  right(ang, speed);
+}
+
+
+/*
+ *    Alex's State Variables
+ */
+
 
 
 /*
@@ -472,8 +477,6 @@ void setup() {
   // put your setup code here, to run once:
   alexDiagonal = sqrt((ALEX_LENGTH * ALEX_LENGTH) + (ALEX_BREADTH * ALEX_BREADTH));
 
-  alexCirc = PI * alexDiagonal;
-
   cli();
   setupEINT();
   setupSerial();
@@ -508,26 +511,21 @@ void loop() {
   //forward(0, 100);
   // Uncomment the code below for Week 9 Studio 2
 
-  /*
- // put your main code here, to run repeatedly:
-  TPacket recvPacket; // This holds commands from the Pi
+
+  // put your main code here, to run repeatedly:
+  TPacket recvPacket;  // This holds commands from the Pi
 
   TResult result = readPacket(&recvPacket);
-  
-  if(result == PACKET_OK)
+
+  if (result == PACKET_OK)
     handlePacket(&recvPacket);
-  else
-    if(result == PACKET_BAD)
-    {
-      sendBadPacket();
-    }
-    else
-      if(result == PACKET_CHECKSUM_BAD)
-      {
-        sendBadChecksum();
-      } 
-      
-      */
+  else if (result == PACKET_BAD) {
+    sendBadPacket();
+  } else if (result == PACKET_CHECKSUM_BAD) {
+    sendBadChecksum();
+  }
+
+
   if (deltaDist > 0) {
     if (dir == FORWARD) {
       if (forwardDist > newDist) {
