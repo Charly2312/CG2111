@@ -1,10 +1,10 @@
 #include <AFMotor.h>
 
 // Motor control
-#define FRONT_LEFT   1 // M4 on the driver shield
-#define FRONT_RIGHT  4 // M1 on the driver shield
-#define BACK_LEFT    2 // M3 on the driver shield
-#define BACK_RIGHT   3 // M2 on the driver shield
+#define FRONT_LEFT   4 // M4 on the driver shield
+#define FRONT_RIGHT  1 // M1 on the driver shield
+#define BACK_LEFT    3 // M3 on the driver shield
+#define BACK_RIGHT   2 // M2 on the driver shield
 
 AF_DCMotor motorFL(FRONT_LEFT);
 AF_DCMotor motorFR(FRONT_RIGHT);
@@ -34,16 +34,16 @@ void move(float speed, int direction)
         motorBR.run(BACKWARD); 
       break;
       case CW: //turn right
-        motorFL.run(BACKWARD);
-        motorFR.run(FORWARD);
-        motorBL.run(FORWARD);
-        motorBR.run(BACKWARD); 
-      break;
-      case CCW: //turn left
         motorFL.run(FORWARD);
         motorFR.run(BACKWARD);
         motorBL.run(BACKWARD);
         motorBR.run(FORWARD); 
+      break;
+      case CCW: //turn left
+        motorFL.run(BACKWARD);
+        motorFR.run(FORWARD);
+        motorBL.run(FORWARD);
+        motorBR.run(BACKWARD); 
       break;
       case STOP:
       default:
