@@ -86,28 +86,6 @@ unsigned long computeDeltaTicks(float ang) {
   return ticks;
 }
 
-void left(float ang, float speed) {
-  if (ang == 0)
-    deltaTicks = 99999999;
-  else
-    deltaTicks = computeDeltaTicks(ang);
-
-  targetTicks = leftReverseTicksTurns + deltaTicks;
-
-  ccw(ang, speed);
-}
-
-void right(float ang, float speed) {
-  if (ang == 0)
-    deltaTicks = 99999999;
-  else
-    deltaTicks = computeDeltaTicks(ang);
-
-  targetTicks = rightReverseTicksTurns + deltaTicks;
-
-  cw(ang, speed);
-}
-
 
 /*
  *    Alex's State Variables
