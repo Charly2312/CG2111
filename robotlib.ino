@@ -82,15 +82,26 @@ void backward(float dist, float speed)
 }
 
 //turn left, ccw
-void ccw(float dist, float speed)
-{
+void left(float ang, float speed) {
+  if (ang == 0)
+    deltaTicks = 99999999;
+  else
+    deltaTicks = computeDeltaTicks(ang);
+
+  targetTicks = leftReverseTicksTurns + deltaTicks;
+
   dir = (TDirection) LEFT;
   move(speed, CCW);
 }
 
-//turn right, cw
-void cw(float dist, float speed)
-{
+void right(float ang, float speed) {
+  if (ang == 0)
+    deltaTicks = 99999999;
+  else
+    deltaTicks = computeDeltaTicks(ang);
+
+  targetTicks = rightReverseTicksTurns + deltaTicks;
+
   dir = (TDirection) RIGHT;
   move(speed, CW);
 }
