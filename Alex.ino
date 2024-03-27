@@ -243,7 +243,7 @@ ISR(INT3_vect) {  //leftISR
       break;
 
     //Alex is moving to the right
-    //increment RightReverseTicksTurns
+    //increment rightReverseTicksTurns
     case RIGHT:
       leftForwardTicksTurns++;
       break;
@@ -265,13 +265,13 @@ ISR(INT2_vect) {  //rightISR
       break;
 
     //Alex is moving to the left
-    //increment rightReverseTicksTurns
+    //increment rightForwardTicksTurns
     case LEFT:
       rightForwardTicksTurns++;
       break;
 
     //Alex is moving to the right
-    //increment rightForwardTicksTurns
+    //increment rightReverseTicksTurns
     case RIGHT:
       rightReverseTicksTurns++;
       break;
