@@ -1,3 +1,4 @@
+
 #include <serialize.h>
 #include <stdarg.h>
 #include <math.h>
@@ -93,7 +94,7 @@ void left(float ang, float speed) {
 
   targetTicks = leftReverseTicksTurns + deltaTicks;
 
-  left(ang, speed);
+  ccw(ang, speed);
 }
 
 void right(float ang, float speed) {
@@ -104,7 +105,7 @@ void right(float ang, float speed) {
 
   targetTicks = rightReverseTicksTurns + deltaTicks;
 
-  right(ang, speed);
+  cw(ang, speed);
 }
 
 
