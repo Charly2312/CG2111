@@ -73,20 +73,6 @@ unsigned long deltaTicks;
 unsigned long targetTicks;
 
 
-//New function to estimate number of wheel ticks
-// needed to turn an angle
-unsigned long computeDeltaTicks(float ang) {
-  // We will assume that angular distance moved = linear distance moved in one wheel
-  // revolution. This is probably incorrect but simplifies caluclation.
-  // # of wheel revs to make on full 360 turn is vincentCirc / WHEEL_CIRC
-  // This is for 360 degrees. For ang degrees it will be (ang * alexCirc) / (360 * WHEEL_CIRC)
-  // To convert to ticks, we multiply by COUNTS_PER_REV.
-
-  unsigned long ticks = (unsigned long)((ang * alexCirc * COUNTS_PER_REV) / (360.0 * WHEEL_CIRC)) ;
-  return ticks;
-}
-
-
 /*
  *    Alex's State Variables
  */
