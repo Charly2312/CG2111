@@ -3,10 +3,15 @@
 #include <semaphore.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <termios.h>
+#include <iostream>
+#include <fcntl.h>
+#include <cstring>
 #include "packet.h"
 #include "serial.h"
 #include "serialize.h"
 #include "constants.h"
+
 
 #define PORT_NAME			"/dev/ttyACM0"
 #define BAUD_RATE			B9600
@@ -157,6 +162,47 @@ void flushInput()
 	while((c = getchar()) != '\n' && c != EOF);
 }
 
+int kbhit() {
+	struct termios oldt, newt;
+	int ch;
+	int oldf;
+	tcgetattr(STDIN_FILENO, &oldt);
+	newt = oldt;
+	newt.c_lflag &= ~(ICANON | ECHO);
+	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+	oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+	fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+	ch = getchar();
+	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+	fcntl(STDIN_FILENO, F_SETFL, oldf);
+	if (ch != EOF) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+char getch() {
+	char buf = 0;
+	struct termios old = { 0 };
+	if (tcgetattr(0, &old) < 0)
+		perror("tcsetattr()");
+	old.c_lflag &= ~ICANON;
+	old.c_lflag &= ~ECHO;
+	old.c_cc[VMIN] = 1;
+	old.c_cc[VTIME] = 0;
+	if (tcsetattr(0, TCSANOW, &old) < 0)
+		perror("tcsetattr ICANON");
+	if (read(0, &buf, 1) < 0)
+		perror("read()");
+	old.c_lflag |= ICANON;
+	old.c_lflag |= ECHO;
+	if (tcsetattr(0, TCSADRAIN, &old) < 0)
+		perror("tcsetattr ~ICANON");
+	return buf;
+}
+
 // 1. input the direction of movement, then enter sendCommand 
 // 2. enter switch statement, and select the case statement
 // 3. get parameter of the movement: a: distance/angel b: power level, from 0 - 100
@@ -172,25 +218,26 @@ void sendPacket(TPacket* packet)
 	serialWrite(buffer, len);
 }
 
+/*
 void getParams(TPacket* commandPacket)
 {
-	/*
 	printf("Enter distance/angle in cm/degrees (e.g. 50) and power in %% (e.g. 75) separated by space.\n");
 	printf("E.g. 50 75 means go at 50 cm at 75%% power for forward/backward, or 50 degrees left or right turn at 75%%  power\n");
 	scanf("%d %d", &commandPacket->params[0], &commandPacket->params[1]);
 	flushInput();
-	*/
-	
 }
+*/
 
-void sendCommand(char command)
+void sendCommand()
 {
 	TPacket commandPacket;
 
 	commandPacket.packetType = PACKET_TYPE_COMMAND;
 
-	switch(command)
-	{
+	if (kbhit()) {
+		char ch = getch();
+		switch (ch)
+		{
 		case 'w':
 		case 'W':
 			//getParams(&commandPacket);
@@ -248,12 +295,12 @@ void sendCommand(char command)
 
 		case 'q':
 		case 'Q':
-			exitFlag=1;
+			exitFlag = 1;
 			break;
 
 		default:
 			printf("Bad command\n");
-
+		}
 	}
 }
 
@@ -281,14 +328,11 @@ int main()
 	// send the command form the rpi terminal to arduino. 
 	while(!exitFlag)
 	{
-		char ch;
 		printf("Command (w=forward, s=reverse, a=turn left, d=turn right, q=stop, c=clear stats, g=get stats q=exit)\n");
-		scanf("%c", &ch);
-
+		// scanf("%c", &ch);
 		// Purge extraneous characters from input stream
-		flushInput();
-
-		sendCommand(ch);
+		// flushInput();
+		sendCommand();
 	}
 
 	printf("Closing connection to Arduino.\n");
