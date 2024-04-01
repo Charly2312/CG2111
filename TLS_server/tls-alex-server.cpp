@@ -354,7 +354,7 @@ int main()
 
     /* TODO: Call createServer with the necessary parameters to do client authentication and to send
         Alex's certificate. Use the #define names you defined earlier  */
-
+    createServer(KEY_FNAME, CERT_FNAME, SERVER_PORT, &worker, CA_CERT_FNAME, CLIENT_NAME, 1);
     /* TODO END */
 
 	printf("DONE. Sending HELLO to Arduino\n");
