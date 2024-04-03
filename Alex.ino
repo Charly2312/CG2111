@@ -95,10 +95,11 @@ TResult readPacket(TPacket *packet) {
 
   len = readSerial(buffer);
 
-  if (len == 0)
+  if (len == 0) {
     return PACKET_INCOMPLETE;
-  else
+  } else {
     return deserialize(buffer, len, packet);
+  }
 }
 
 void sendStatus() {
@@ -425,12 +426,11 @@ void waitForHello() {
 
     if (result == PACKET_OK) {
       if (hello.packetType == PACKET_TYPE_HELLO) {
-
-
         sendOK();
         exit = 1;
-      } else
+      } else {
         sendBadResponse();
+      }
     } else if (result == PACKET_BAD) {
       sendBadPacket();
     } else if (result == PACKET_CHECKSUM_BAD)
@@ -482,9 +482,9 @@ void loop() {
 
   TResult result = readPacket(&recvPacket);
 
-  if (result == PACKET_OK)
+  if (result == PACKET_OK) {
     handlePacket(&recvPacket);
-  else if (result == PACKET_BAD) {
+  } else if (result == PACKET_BAD) {
     sendBadPacket();
   } else if (result == PACKET_CHECKSUM_BAD) {
     sendBadChecksum();
@@ -504,9 +504,7 @@ void loop() {
         newDist = 0;
         stop();
       }
-    } else
-
-      if (dir == STOP) {
+    } else if (dir == STOP) {
       deltaDist = 0;
       newDist = 0;
       stop();
