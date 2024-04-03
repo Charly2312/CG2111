@@ -1,18 +1,28 @@
+#include <string.h>
+
 // TCS230 or TCS3200 pins wiring to Arduino
-#define S0 38
-#define S1 36
-#define S2 42
-#define S3 44
-#define sensorOut 40
+#define S0 32 // PC5
+#define S1 31 // PC6
+#define S2 33 // PC4
+#define S3 34 // PC3
+#define sensorOut 41 // PG0
+
+// LED pins
+#define blueLED 46 // PL3
+#define redLED 45 // PL4
+#define greenLED 44 // PL5
+
+#define ECHO 25
+#define TRIG 24
 
 // Calibration Values - 3cm between sensor and color paper
 // *Get these from Calibration Sketch
-int redMin = 190; // Red minimum value
-int redMax = 810; // Red maximum value
-int greenMin = 185; // Green minimum value
-int greenMax = 800; // Green maximum value
-int blueMin = 155; // Blue minimum value
-int blueMax = 644; // Blue maximum value
+int redMin = 210; //190; // Red minimum value
+int redMax = 600; //810; // Red maximum value
+int greenMin = 110; //185; // Green minimum value
+int greenMax = 720; //800; // Green maximum value
+int blueMin = 90; //155; // Blue minimum value
+int blueMax = 610; //644; // Blue maximum value
 
 // Variables for Color Pulse Width Measurements
 int redPW = 0;
@@ -26,18 +36,27 @@ int blueValue;
 
 void setup() {
 	// Set S0 - S3 as outputs
-	pinMode(S0, OUTPUT);
-	pinMode(S1, OUTPUT);
-	pinMode(S2, OUTPUT);
-	pinMode(S3, OUTPUT);
+	DDRC = 0b01111000;
+  //pinMode(S0, OUTPUT);
+	//pinMode(S1, OUTPUT);
+	//pinMode(S2, OUTPUT);
+	//pinMode(S3, OUTPUT);
+
+  // Set LED as outputs
+  DDRL = 0b00111000;
 
 	// Set Sensor output as input
-	pinMode(sensorOut, INPUT);
+  DDRG = 0;
+	//pinMode(sensorOut, INPUT);
 
 	// Set Frequency scaling to 20%
-	digitalWrite(S0,HIGH);
-	digitalWrite(S1,LOW);
+  PORTC = 0b00100000;
+	//digitalWrite(S0,HIGH);
+	//digitalWrite(S1,LOW);
 
+  DDRA = 0b00000100;
+  //pinMode(TRIG, OUTPUT);
+  //pinMode(ECHO, INPUT);
 	// Setup Serial Monitor
 	Serial.begin(9600);
 }
@@ -45,8 +64,9 @@ void setup() {
 // Function to read Red Pulse Widths
 int getRedPW() {
 	// Set sensor to read Red only
-	digitalWrite(S2,LOW);
-	digitalWrite(S3,LOW);
+  PORTC &= 0b11100111;
+	//digitalWrite(S2,LOW);
+	//digitalWrite(S3,LOW);
 	// Define integer to represent Pulse Width
 	int PW;
 	// Read the output Pulse Width
@@ -58,8 +78,9 @@ int getRedPW() {
 // Function to read Green Pulse Widths
 int getGreenPW() {
 	// Set sensor to read Green only
-	digitalWrite(S2,HIGH);
-	digitalWrite(S3,HIGH);
+  PORTC |= 0b00011000;
+	//digitalWrite(S2,HIGH);
+	//digitalWrite(S3,HIGH);
 	// Define integer to represent Pulse Width
 	int PW;
 	// Read the output Pulse Width
@@ -71,8 +92,10 @@ int getGreenPW() {
 // Function to read Blue Pulse Widths
 int getBluePW() {
 	// Set sensor to read Blue only
-	digitalWrite(S2,LOW);
-	digitalWrite(S3,HIGH);
+	PORTC &= 0b11101111;
+  PORTC |= 0b00001000;
+  //digitalWrite(S2,LOW);
+	//digitalWrite(S3,HIGH);
 	// Define integer to represent Pulse Width
 	int PW;
 	// Read the output Pulse Width
@@ -81,8 +104,56 @@ int getBluePW() {
 	return PW;
 }
 
-void loop() {
-	// Read Red value
+void checkColour(int red, int green, int blue) {
+  double sum = (double)(red+green+blue);
+  double rRatio = fabs(red/sum);
+  double gRatio = fabs(green/sum);
+  double bRatio = fabs(blue/sum);
+  Serial.print("RedRatio = ");
+	Serial.print(rRatio);
+	Serial.print(" - GreenRatio = ");
+	Serial.print(gRatio);
+	Serial.print(" - BlueRatio = ");
+	Serial.println(bRatio);
+  if (rRatio > 0.28 && gRatio > 0.28 && bRatio > 0.28) {
+    // white
+    Serial.println("white");
+  }
+  else if (rRatio > 0.55 && gRatio < 0.18) {
+    // red
+    Serial.println("red");
+  }
+  else if (rRatio > 0.45 && gRatio < 0.3) {
+    // orange
+    Serial.println("orange");
+  } 
+  else if (rRatio < 0.8 && gRatio > 0.3 && bRatio < 0.35) {
+    // green
+    Serial.println("green");
+  }
+  else if ((rRatio >= 0.4 && gRatio > 0.20 && bRatio > 0.35) || (gRatio < 0.3 && bRatio > 0.3)) {
+    // purple
+    Serial.println("purple");
+  }
+  else if (rRatio < 0.4 && bRatio >= 0.35) {
+    // blue
+    Serial.println("blue");
+  }
+}
+
+int getDistance() {
+  PORTA |= 0b00000100;
+  //digitalWrite(TRIG, HIGH);
+  delay(100);
+  PORTA &= 0b11111011;
+  //digitalWrite(TRIG, LOW);
+  float microsecs = pulseIn(ECHO, HIGH);
+  float cms = microsecs * 0.0345 / 2;
+  Serial.println(cms); 
+}
+
+void colourSense() {
+  // Read Red value
 	redPW = getRedPW();
 	// Map to value from 0-255
 	redValue = map(redPW, redMin,redMax,255,0);
@@ -103,6 +174,13 @@ void loop() {
 	// Delay to stabilize sensor
 	delay(200);
 
+  Serial.print("RedPWM = ");
+	Serial.print(redPW);
+	Serial.print(" - GreenPWM = ");
+	Serial.print(greenPW);
+	Serial.print(" - BluePWM = ");
+	Serial.println(bluePW);
+
 	// Print output to Serial Monitor
 	Serial.print("Red = ");
 	Serial.print(redValue);
@@ -110,4 +188,25 @@ void loop() {
 	Serial.print(greenValue);
 	Serial.print(" - Blue = ");
 	Serial.println(blueValue);
+
+  // Show colour on LED based on colour detected by colour sensor
+  analogWrite(redLED, abs(redValue));
+  analogWrite(greenLED, abs(greenValue));
+  analogWrite(blueLED, abs(blueValue));
+  delay(500);
+
+  // Turn off LED
+  analogWrite(greenLED, 0);
+  analogWrite(blueLED, 0);
+  analogWrite(redLED, 0);
+
+  checkColour(redValue, greenValue, blueValue);
+}
+
+
+void loop() {
+  getDistance();
+  if (getDistance() > 7.5 && getDistance() <= 8) {
+    colourSense();
+  }
 }
