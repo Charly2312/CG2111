@@ -71,7 +71,7 @@ void forward(float dist, float speed)
 {
   if(dist > 0) {
  	 	deltaDist = dist;
-  } else 
+  } else {
  	 	deltaDist=9999999; 
   }
  	newDist = forwardDist + deltaDist; 
@@ -85,7 +85,7 @@ void backward(float dist, float speed)
 {
   if(dist > 0) {
  	 	deltaDist = dist;  	
-  } else 
+  } else {
  	 	deltaDist=9999999; 
   }
  	newDist = reverseDist + deltaDist; 
@@ -98,7 +98,7 @@ void backward(float dist, float speed)
 void left(float ang, float speed) {
   if (ang == 0) {
     deltaTicks = 99999999;
-  } else
+  } else {
     deltaTicks = computeDeltaTicks(ang);
   }
   targetTicks = leftReverseTicksTurns + deltaTicks;
