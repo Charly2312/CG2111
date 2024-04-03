@@ -69,11 +69,11 @@ unsigned long computeDeltaTicks(float ang) {
 
 void forward(float dist, float speed)
 {
-  if(dist > 0) 
- 	 	deltaDist = dist;  	
-  else 
+  if(dist > 0) {
+ 	 	deltaDist = dist;
+  } else 
  	 	deltaDist=9999999; 
- 
+  }
  	newDist = forwardDist + deltaDist; 
 
   dir = (TDirection) FORWARD;
@@ -83,11 +83,11 @@ void forward(float dist, float speed)
 //reverse
 void backward(float dist, float speed)
 {
-  if(dist > 0) 
+  if(dist > 0) {
  	 	deltaDist = dist;  	
-  else 
+  } else 
  	 	deltaDist=9999999; 
- 
+  }
  	newDist = reverseDist + deltaDist; 
 
   dir = (TDirection) BACKWARD;
@@ -96,11 +96,11 @@ void backward(float dist, float speed)
 
 //turn left, ccw
 void left(float ang, float speed) {
-  if (ang == 0)
+  if (ang == 0) {
     deltaTicks = 99999999;
-  else
+  } else
     deltaTicks = computeDeltaTicks(ang);
-
+  }
   targetTicks = leftReverseTicksTurns + deltaTicks;
 
   dir = (TDirection) LEFT;
@@ -108,11 +108,11 @@ void left(float ang, float speed) {
 }
 
 void right(float ang, float speed) {
-  if (ang == 0)
+  if (ang == 0) {
     deltaTicks = 99999999;
-  else
+  } else {
     deltaTicks = computeDeltaTicks(ang);
-
+  }
   targetTicks = rightReverseTicksTurns + deltaTicks;
 
   dir = (TDirection) RIGHT;
