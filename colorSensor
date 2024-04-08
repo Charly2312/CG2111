@@ -12,8 +12,8 @@
 #define redLED 45 // PL4
 #define greenLED 44 // PL5
 
-#define ECHO 25
-#define TRIG 24
+#define ECHO 24
+#define TRIG 25
 
 // Calibration Values - 3cm between sensor and color paper
 // *Get these from Calibration Sketch
@@ -54,7 +54,7 @@ void setup() {
 	//digitalWrite(S0,HIGH);
 	//digitalWrite(S1,LOW);
 
-  DDRA = 0b00000100;
+  DDRA = 0b00001000;
   //pinMode(TRIG, OUTPUT);
   //pinMode(ECHO, INPUT);
 	// Setup Serial Monitor
@@ -141,15 +141,15 @@ void checkColour(int red, int green, int blue) {
   }
 }
 
-int getDistance() {
-  PORTA |= 0b00000100;
+float getDistance() {
+  PORTA |= 0b00001000;
   //digitalWrite(TRIG, HIGH);
   delay(100);
-  PORTA &= 0b11111011;
+  PORTA &= 0b11110111;
   //digitalWrite(TRIG, LOW);
   float microsecs = pulseIn(ECHO, HIGH);
   float cms = microsecs * 0.0345 / 2;
-  Serial.println(cms); 
+  return cms; 
 }
 
 void colourSense() {
@@ -205,7 +205,6 @@ void colourSense() {
 
 
 void loop() {
-  getDistance();
   if (getDistance() > 7.5 && getDistance() <= 8) {
     colourSense();
   }
