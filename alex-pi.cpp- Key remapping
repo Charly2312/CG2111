@@ -274,21 +274,21 @@ void sendCommand()
 			sendPacket(&commandPacket);
 			break;
 
-		case 'q':
-		case 'Q':
+		case 'e':
+		case 'E':
 			commandPacket.command = COMMAND_STOP;
-			sendPacket(&commandPacket);
+			(&commandPacket);
 			break;
 
-		case 'c':
-		case 'C':
+		case 'p':
+		case 'P':
 			commandPacket.command = COMMAND_CLEAR_STATS;
 			commandPacket.params[0] = 0;
 			sendPacket(&commandPacket);
 			break;
 
-		case 'g':
-		case 'G':
+		case 'c':
+		case 'C':
 			commandPacket.command = COMMAND_GET_STATS;
 			sendPacket(&commandPacket);
 			break;
@@ -328,7 +328,7 @@ int main()
 	// send the command form the rpi terminal to arduino. 
 	while(!exitFlag)
 	{
-		printf("Command (w=forward, s=reverse, a=turn left, d=turn right, q=stop, c=clear stats, g=get stats q=exit)\n");
+		printf("Command (w=forward, s=reverse, a=turn left, d=turn right, e=stop, p=clear stats, c=get stats q=exit)\n");
 		// scanf("%c", &ch);
 		// Purge extraneous characters from input stream
 		// flushInput();
