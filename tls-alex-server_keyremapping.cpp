@@ -253,21 +253,21 @@ void handleCommand(void *conn, const char *buffer)
 			uartSendPacket(&commandPacket);
 			break;
 
-		case 'q':
-		case 'Q':
+		case 'e':
+		case 'E':
 			commandPacket.command = COMMAND_STOP;
 			uartSendPacket(&commandPacket);
 			break;
 
-		case 'c':
-		case 'C':
+		case 'p':
+		case 'P':
 			commandPacket.command = COMMAND_CLEAR_STATS;
 			commandPacket.params[0] = 0;
 			uartSendPacket(&commandPacket);
 			break;
 
-		case 'g':
-		case 'G':
+		case 'c':
+		case 'C':
 			commandPacket.command = COMMAND_GET_STATS;
 			uartSendPacket(&commandPacket);
 			break;
