@@ -124,4 +124,3 @@ void stop()
   dir = (TDirection) STOP;
   move(0, STOP);
 }
-
