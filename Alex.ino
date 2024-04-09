@@ -72,7 +72,15 @@ unsigned long newDist;
 unsigned long deltaTicks;
 unsigned long targetTicks;
 
+// Variables for Color Pulse Width Measurements
+volatile int redPW = 0;
+volatile int greenPW = 0;
+volatile int bluePW = 0;
 
+// Variables for final Color values
+volatile int redValue;
+volatile int greenValue;
+volatile int blueValue;
 /*
  *    Alex's State Variables
  */
@@ -124,7 +132,10 @@ void sendStatus() {
   statusPacket.params[7] = rightReverseTicksTurns;
   statusPacket.params[8] = forwardDist;
   statusPacket.params[9] = reverseDist;
-
+  statusPacket.params[10] = redValue;
+  statusPacket.params[11] = greenValue;
+  statusPacket.params[12] = blueValue;
+  
   sendResponse(&statusPacket);
 }
 
@@ -220,6 +231,16 @@ void enablePullups() {
   PORTD |= 0b00001100;  //drive PD2 and PD3 HIGH
 }
 
+ISR(INT0_vect) { //color sensor
+  float distance = getDistance();
+  Serial.println(distance);
+  if (distance > 7.5 && distance <= 8) {
+    stop();
+    colourSense();
+    Serial.println("colorrfbhf gncnfsbwbesbt");
+  }
+}
+
 // Functions to be called by INT2 and INT3 ISRs.
 ISR(INT3_vect) {  //leftISR
   switch (dir) {
@@ -279,6 +300,34 @@ ISR(INT2_vect) {  //rightISR
   }
 }
 
+void setupColor() {
+  // Set S0 - S3 as outputs
+	DDRC |= 0b01111000;
+  //pinMode(S0, OUTPUT);
+	//pinMode(S1, OUTPUT);
+	//pinMode(S2, OUTPUT);
+	//pinMode(S3, OUTPUT);
+
+  // Set LED as outputs
+  DDRL |= 0b00111000;
+
+	// Set Sensor output as input
+  DDRG &= 0b11111110;
+	//pinMode(sensorOut, INPUT);
+
+	// Set Frequency scaling to 20%
+  PORTC |= 0b00100000;
+  PORTC &= 0b10111111;
+	//digitalWrite(S0,HIGH);
+	//digitalWrite(S1,LOW);
+
+  DDRD |= 0b00000001;
+  DDRD &= 0b11111101;
+  //pinMode(TRIG, OUTPUT);
+  //pinMode(ECHO, INPUT);
+	// Setup Serial Monitor
+}
+
 // Set up the external interrupt pins INT2 and INT3
 // for falling edge triggered. Use bare-metal.
 void setupEINT() {
@@ -288,7 +337,7 @@ void setupEINT() {
   // Hint: Check pages 110 and 111 in the ATmega2560 Datasheet.
   cli();
   EICRA |= 0b10100000;  //set INT2 and INT3 to falling edge
-  EIMSK |= 0b00001100;  //enable INT2 and INT3
+  EIMSK |= 0b00001101;  //enable INT2 and INT3
   sei();
 }
 
@@ -441,8 +490,8 @@ void waitForHello() {
 void setup() {
   // put your setup code here, to run once:
   alexDiagonal = sqrt((ALEX_LENGTH * ALEX_LENGTH) + (ALEX_BREADTH * ALEX_BREADTH));
-
   cli();
+  setupColor();
   setupEINT();
   setupSerial();
   startSerial();
@@ -474,9 +523,10 @@ void handlePacket(TPacket *packet) {
 void loop() {
   // Uncomment the code below for Step 2 of Activity 3 in Week 8 Studio 2
   //forward(0, 100);
+
   // Uncomment the code below for Week 9 Studio 2
 
-
+  
   // put your main code here, to run repeatedly:
   TPacket recvPacket;  // This holds commands from the Pi
 
@@ -489,14 +539,16 @@ void loop() {
   } else if (result == PACKET_CHECKSUM_BAD) {
     sendBadChecksum();
   }
-
-
+  float distance = getDistance();
   if (deltaDist > 0) {
     if (dir == FORWARD) {
-      if (forwardDist > newDist) {
+      if (forwardDist > newDist || (distance > 7 && distance <= 8)) {
         deltaDist = 0;
         newDist = 0;
         stop();
+        if ((distance > 7 && distance <= 8)) {
+          colourSense();
+        }
       }
     } else if (dir == BACKWARD) {
       if (reverseDist > newDist) {
@@ -513,16 +565,22 @@ void loop() {
 
   if (deltaTicks > 0) {
     if (dir == LEFT) {
-      if (leftReverseTicksTurns >= targetTicks) {
+      if (leftReverseTicksTurns >= targetTicks || (distance > 7 && distance <= 8)) {
         deltaTicks = 0;
         targetTicks = 0;
         stop();
+        if ((distance > 7.5 && distance <= 8)) {
+          colourSense();
+        }
       }
     } else if (dir == RIGHT) {
-      if (rightReverseTicksTurns >= targetTicks) {
+      if (rightReverseTicksTurns >= targetTicks || (distance > 7 && distance <= 8)) {
         deltaTicks = 0;
         targetTicks = 0;
         stop();
+        if (distance > 7.5 && distance <= 8) {
+          colourSense();
+        }
       }
     } else if (dir == STOP) {
       deltaTicks = 0;
