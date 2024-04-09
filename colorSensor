@@ -1,3 +1,4 @@
+
 #include <string.h>
 
 // TCS230 or TCS3200 pins wiring to Arduino
@@ -12,8 +13,8 @@
 #define redLED 45 // PL4
 #define greenLED 44 // PL5
 
-#define ECHO 20 //yellow
-#define TRIG 21 //orange
+#define ECHO 20 // yellow // PD1 // PA2
+#define TRIG 21 // orange // PD0 // PA3
 
 // Calibration Values - 3cm between sensor and color paper
 // *Get these from Calibration Sketch
@@ -24,15 +25,7 @@ int greenMax = 720; //800; // Green maximum value
 int blueMin = 90; //155; // Blue minimum value
 int blueMax = 610; //644; // Blue maximum value
 
-// Variables for Color Pulse Width Measurements
-int redPW = 0;
-int greenPW = 0;
-int bluePW = 0;
 
-// Variables for final Color values
-int redValue;
-int greenValue;
-int blueValue;
 
 // Function to read Red Pulse Widths
 int getRedPW() {
@@ -92,26 +85,23 @@ void checkColour(int red, int green, int blue) {
     // white
     Serial.println("white");
   }
-  else if (rRatio > 0.55 && gRatio < 0.18) {
+  else if (rRatio > gRatio && rRatio > bRatio) {
     // red
     Serial.println("red");
   }
-  else if (rRatio > 0.45 && gRatio < 0.3) {
+  //else if (rRatio > 0.45 && gRatio < 0.3) {
     // orange
-    Serial.println("orange");
-  } 
-  else if (rRatio < 0.8 && gRatio > 0.3 && bRatio < 0.35) {
+  //  Serial.println("orange");} 
+  else if (gRatio > rRatio && gRatio > bRatio) {
     // green
     Serial.println("green");
   }
-  else if ((rRatio >= 0.4 && gRatio > 0.20 && bRatio > 0.35) || (gRatio < 0.3 && bRatio > 0.3)) {
+  //else if ((rRatio >= 0.4 && gRatio > 0.20 && bRatio > 0.35) || (gRatio < 0.3 && bRatio > 0.3)) {
     // purple
-    Serial.println("purple");
-  }
-  else if (rRatio < 0.4 && bRatio >= 0.35) {
+  //  Serial.println("purple");}
+  //else if (rRatio < 0.4 && bRatio >= 0.35) {
     // blue
-    Serial.println("blue");
-  }
+  //  Serial.println("blue");}
 }
 
 float getDistance() {
