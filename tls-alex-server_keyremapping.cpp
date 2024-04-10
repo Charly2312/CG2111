@@ -41,6 +41,11 @@ static volatile int networkActive;
 
 static void *tls_conn = NULL;
 
+// Ensure smooth send_status 
+static bool send_status = false;
+
+
+
 /*
 
 	Alex Serial Routines to the Arduino
@@ -88,6 +93,7 @@ void handleResponse(TPacket *packet)
 			resp[0] = NET_ERROR_PACKET;
 			resp[1] = RESP_OK;
 			sendNetworkData(resp, sizeof(resp));
+			send_status=false;
 		break;
 
 		case RESP_STATUS:
@@ -273,6 +279,7 @@ void handleCommand(void *conn, const char *buffer)
 			break;
 
 		default:
+			send_status = false;
 			printf("Bad command\n");
 
 	}
@@ -289,7 +296,8 @@ void handleNetworkData(void *conn, const char *buffer, int len)
 
         tls_conn = conn; // This is used by sendNetworkData
 
-	if(buffer[0] == NET_COMMAND_PACKET)
+	if(buffer[0] == NET_COMMAND_PACKET && !send_status)
+		send_status = true;
 		handleCommand(conn, buffer);
 }
 
