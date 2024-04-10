@@ -1,5 +1,4 @@
 
-
 #include <string.h>
 
 // TCS230 or TCS3200 pins wiring to Arduino
@@ -82,20 +81,31 @@ void checkColour(int red, int green, int blue) {
 	Serial.print(gRatio);
 	Serial.print(" - BlueRatio = ");
 	Serial.println(bRatio);
+  DDRL |= 0b00111000;
+
   if (rRatio > 0.28 && gRatio > 0.28 && bRatio > 0.28) {
     // white
-    Serial.println("white");
+    // Serial.println("white");
+    analogWrite(redLED, 245);
+    analogWrite(greenLED, 245);
+    analogWrite(blueLED, 245);
   }
   else if (rRatio > gRatio && rRatio > bRatio) {
     // red
-    Serial.println("red");
+    //Serial.println("red");
+    analogWrite(redLED, 50);
+    analogWrite(greenLED, 255);
+    analogWrite(blueLED, 255);
   }
   //else if (rRatio > 0.45 && gRatio < 0.3) {
     // orange
   //  Serial.println("orange");} 
   else if (gRatio > rRatio && gRatio > bRatio) {
     // green
-    Serial.println("green");
+    //Serial.println("green");
+    analogWrite(redLED, 0);
+    analogWrite(greenLED, 0);
+    analogWrite(blueLED, 255);
   }
   //else if ((rRatio >= 0.4 && gRatio > 0.20 && bRatio > 0.35) || (gRatio < 0.3 && bRatio > 0.3)) {
     // purple
@@ -103,6 +113,8 @@ void checkColour(int red, int green, int blue) {
   //else if (rRatio < 0.4 && bRatio >= 0.35) {
     // blue
   //  Serial.println("blue");}
+  delay(500);
+  DDRL &= 0b11000111;
 }
 
 float getDistance() {
@@ -137,7 +149,7 @@ void colourSense() {
 	blueValue = map(bluePW, blueMin,blueMax,255,0);
 	// Delay to stabilize sensor
 	delay(200);
-
+  /*
   Serial.print("RedPWM = ");
 	Serial.print(redPW);
 	Serial.print(" - GreenPWM = ");
@@ -152,17 +164,6 @@ void colourSense() {
 	Serial.print(greenValue);
 	Serial.print(" - Blue = ");
 	Serial.println(blueValue);
-
-  // Show colour on LED based on colour detected by colour sensor
-  analogWrite(redLED, abs(redValue));
-  analogWrite(greenLED, abs(greenValue));
-  analogWrite(blueLED, abs(blueValue));
-  delay(500);
-
-  // Turn off LED
-  analogWrite(greenLED, 0);
-  analogWrite(blueLED, 0);
-  analogWrite(redLED, 0);
-
+  */
   checkColour(redValue, greenValue, blueValue);
 }
