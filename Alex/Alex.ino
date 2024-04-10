@@ -283,6 +283,30 @@ ISR(INT2_vect) {  //rightISR
   }
 }
 
+void setupColor() {
+  // Set S0 - S3 as outputs
+	DDRC |= 0b01111000;
+  //pinMode(S0, OUTPUT);
+	//pinMode(S1, OUTPUT);
+	//pinMode(S2, OUTPUT);
+	//pinMode(S3, OUTPUT);
+
+  // Set LED as outputs
+  DDRL |= 0b00111000;
+
+	// Set Sensor output as input
+  DDRG &= 0b11111110;
+	//pinMode(sensorOut, INPUT);
+
+	// Set Frequency scaling to 20%
+  PORTC |= 0b00100000;
+  PORTC &= 0b10111111;
+	//digitalWrite(S0,HIGH);
+	//digitalWrite(S1,LOW);
+
+	// Setup Serial Monitor
+}
+
 // Set up the external interrupt pins INT2 and INT3
 // for falling edge triggered. Use bare-metal.
 void setupEINT() {
@@ -448,6 +472,7 @@ void setup() {
   alexDiagonal = sqrt((ALEX_LENGTH * ALEX_LENGTH) + (ALEX_BREADTH * ALEX_BREADTH));
 
   cli();
+  setupColor();
   setupEINT();
   setupSerial();
   startSerial();
