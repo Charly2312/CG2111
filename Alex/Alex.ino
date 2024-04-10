@@ -1,4 +1,3 @@
-
 #include <serialize.h>
 #include <stdarg.h>
 #include <math.h>
@@ -39,6 +38,9 @@ float alexCirc = PI * alexDiagonal;
 
 #define WHEEL_CIRC 22
 
+/*
+ *    Alex's State Variables
+ */
 
 // Store the ticks from Alex's left and
 // right encoders.
@@ -81,11 +83,41 @@ volatile int bluePW = 0;
 volatile int redValue;
 volatile int greenValue;
 volatile int blueValue;
-/*
- *    Alex's State Variables
- */
 
+//New function to estimate number of wheel ticks
+// needed to turn an angle
+unsigned long computeDeltaTicks(float ang) {
+  // We will assume that angular distance moved = linear distance moved in one wheel
+  // revolution. This is probably incorrect but simplifies caluclation.
+  // # of wheel revs to make on full 360 turn is vincentCirc / WHEEL_CIRC
+  // This is for 360 degrees. For ang degrees it will be (ang * alexCirc) / (360 * WHEEL_CIRC)
+  // To convert to ticks, we multiply by COUNTS_PER_REV.
 
+  unsigned long ticks = (unsigned long)((ang * alexCirc * COUNTS_PER_REV) / (360.0 * WHEEL_CIRC)); 
+  return ticks;
+}
+
+void left(float ang, float speed) {
+  if (ang == 0)
+    deltaTicks = 99999999;
+  else
+    deltaTicks = computeDeltaTicks(ang);
+
+  targetTicks = leftReverseTicksTurns + deltaTicks;
+
+  left(ang, speed);
+}
+
+void right(float ang, float speed) {
+  if (ang == 0)
+    deltaTicks = 99999999;
+  else
+    deltaTicks = computeDeltaTicks(ang);
+
+  targetTicks = rightReverseTicksTurns + deltaTicks;
+
+  right(ang, speed);
+}
 
 /*
  * 
@@ -103,11 +135,10 @@ TResult readPacket(TPacket *packet) {
 
   len = readSerial(buffer);
 
-  if (len == 0) {
+  if (len == 0)
     return PACKET_INCOMPLETE;
-  } else {
+  else
     return deserialize(buffer, len, packet);
-  }
 }
 
 void sendStatus() {
@@ -132,10 +163,7 @@ void sendStatus() {
   statusPacket.params[7] = rightReverseTicksTurns;
   statusPacket.params[8] = forwardDist;
   statusPacket.params[9] = reverseDist;
-  statusPacket.params[10] = redValue;
-  statusPacket.params[11] = greenValue;
-  statusPacket.params[12] = blueValue;
-  
+
   sendResponse(&statusPacket);
 }
 
@@ -231,17 +259,6 @@ void enablePullups() {
   PORTD |= 0b00001100;  //drive PD2 and PD3 HIGH
 }
 
-/*
-ISR(INT0_vect) { //color sensor
-  float distance = getDistance();
-  Serial.println(distance);
-  if (distance <= 8) {
-    stop();
-    colourSense();
-    Serial.println("colorrfbhf gncnfsbwbesbt");
-  }
-}*/
-
 // Functions to be called by INT2 and INT3 ISRs.
 ISR(INT3_vect) {  //leftISR
   switch (dir) {
@@ -266,7 +283,7 @@ ISR(INT3_vect) {  //leftISR
       break;
 
     //Alex is moving to the right
-    //increment rightReverseTicksTurns
+    //increment RightReverseTicksTurns
     case RIGHT:
       leftForwardTicksTurns++;
       break;
@@ -288,45 +305,17 @@ ISR(INT2_vect) {  //rightISR
       break;
 
     //Alex is moving to the left
-    //increment rightForwardTicksTurns
+    //increment rightReverseTicksTurns
     case LEFT:
       rightForwardTicksTurns++;
       break;
 
     //Alex is moving to the right
-    //increment rightReverseTicksTurns
+    //increment rightForwardTicksTurns
     case RIGHT:
       rightReverseTicksTurns++;
       break;
   }
-}
-
-void setupColor() {
-  // Set S0 - S3 as outputs
-	DDRC |= 0b01111000;
-  //pinMode(S0, OUTPUT);
-	//pinMode(S1, OUTPUT);
-	//pinMode(S2, OUTPUT);
-	//pinMode(S3, OUTPUT);
-
-  // Set LED as outputs
-  DDRL |= 0b00111000;
-
-	// Set Sensor output as input
-  DDRG &= 0b11111110;
-	//pinMode(sensorOut, INPUT);
-
-	// Set Frequency scaling to 20%
-  PORTC |= 0b00100000;
-  PORTC &= 0b10111111;
-	//digitalWrite(S0,HIGH);
-	//digitalWrite(S1,LOW);
-
-  DDRD |= 0b00000001;
-  DDRD &= 0b11111101;
-  //pinMode(TRIG, OUTPUT);
-  //pinMode(ECHO, INPUT);
-	// Setup Serial Monitor
 }
 
 // Set up the external interrupt pins INT2 and INT3
@@ -338,7 +327,7 @@ void setupEINT() {
   // Hint: Check pages 110 and 111 in the ATmega2560 Datasheet.
   cli();
   EICRA |= 0b10100000;  //set INT2 and INT3 to falling edge
-  EIMSK |= 0b00001101;  //enable INT2 and INT3
+  EIMSK |= 0b00001100;  //enable INT2 and INT3
   sei();
 }
 
@@ -476,11 +465,12 @@ void waitForHello() {
 
     if (result == PACKET_OK) {
       if (hello.packetType == PACKET_TYPE_HELLO) {
+
+
         sendOK();
         exit = 1;
-      } else {
+      } else
         sendBadResponse();
-      }
     } else if (result == PACKET_BAD) {
       sendBadPacket();
     } else if (result == PACKET_CHECKSUM_BAD)
@@ -491,8 +481,8 @@ void waitForHello() {
 void setup() {
   // put your setup code here, to run once:
   alexDiagonal = sqrt((ALEX_LENGTH * ALEX_LENGTH) + (ALEX_BREADTH * ALEX_BREADTH));
+
   cli();
-  setupColor();
   setupEINT();
   setupSerial();
   startSerial();
@@ -527,7 +517,7 @@ void loop() {
 
   // Uncomment the code below for Week 9 Studio 2
 
-  /*
+  
   // put your main code here, to run repeatedly:
   TPacket recvPacket;  // This holds commands from the Pi
 
@@ -588,7 +578,5 @@ void loop() {
       targetTicks = 0;
       stop();
     }
-  }*/
-  Serial.println("hi");
-  forward(50, 100);
+  }
 }
