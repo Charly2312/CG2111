@@ -291,8 +291,8 @@ void setupColor() {
 	//pinMode(S2, OUTPUT);
 	//pinMode(S3, OUTPUT);
 
-  // Set LED as outputs
-  DDRL |= 0b00111000;
+  // Offing LED
+  DDRL &= 0b11000111;
 
 	// Set Sensor output as input
   DDRG &= 0b11111110;
@@ -304,6 +304,8 @@ void setupColor() {
 	//digitalWrite(S0,HIGH);
 	//digitalWrite(S1,LOW);
 
+  DDRD |= 0b00000001;
+  DDRD &= 0b11111101;	
 	// Setup Serial Monitor
 }
 
@@ -469,8 +471,7 @@ void waitForHello() {
 
 void setup() {
   // put your setup code here, to run once:
-  alexDiagonal = sqrt((ALEX_LENGTH * ALEX_LENGTH) + (ALEX_BREADTH * ALEX_BREADTH));
-
+	alexDiagonal = sqrt((ALEX_LENGTH * ALEX_LENGTH) + (ALEX_BREADTH * ALEX_BREADTH));
   cli();
   setupColor();
   setupEINT();
@@ -506,7 +507,7 @@ void loop() {
   //forward(0, 100);
 
   // Uncomment the code below for Week 9 Studio 2
-
+  
   
   // put your main code here, to run repeatedly:
   TPacket recvPacket;  // This holds commands from the Pi
@@ -523,11 +524,11 @@ void loop() {
   float distance = getDistance();
   if (deltaDist > 0) {
     if (dir == FORWARD) {
-      if (forwardDist > newDist || (distance > 7 && distance <= 8)) {
+      if (forwardDist > newDist || (distance > 7 && distance <= 11)) {
         deltaDist = 0;
         newDist = 0;
         stop();
-        if ((distance > 7 && distance <= 8)) {
+        if ((distance > 7 && distance <= 11)) {
           colourSense();
         }
       }
@@ -546,20 +547,20 @@ void loop() {
 
   if (deltaTicks > 0) {
     if (dir == LEFT) {
-      if (leftReverseTicksTurns >= targetTicks || (distance > 7 && distance <= 8)) {
+      if (leftReverseTicksTurns >= targetTicks || (distance > 7 && distance <= 11)) {
         deltaTicks = 0;
         targetTicks = 0;
         stop();
-        if ((distance > 7.5 && distance <= 8)) {
+        if ((distance > 7.5 && distance <= 11)) {
           colourSense();
         }
       }
     } else if (dir == RIGHT) {
-      if (rightReverseTicksTurns >= targetTicks || (distance > 7 && distance <= 8)) {
+      if (rightReverseTicksTurns >= targetTicks || (distance > 7 && distance <= 11)) {
         deltaTicks = 0;
         targetTicks = 0;
         stop();
-        if (distance > 7.5 && distance <= 8) {
+        if (distance > 7.5 && distance <= 11) {
           colourSense();
         }
       }
