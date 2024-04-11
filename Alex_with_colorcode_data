@@ -609,7 +609,7 @@ void checkColor(unsigned long red, unsigned long green, unsigned long blue) {
 	Serial.println(bRatio);*/
   DDRL |= 0b00111000;
 
-  if (rRatio > 0.28 && gRatio > 0.28 && bRatio > 0.28) {
+  if (rRatio < 0.4 && gRatio < 0.32 && bRatio < 0.32) {
     // white
     // Serial.println("white");
     analogWrite(redLED, 245);
@@ -617,7 +617,7 @@ void checkColor(unsigned long red, unsigned long green, unsigned long blue) {
     analogWrite(blueLED, 245);
     color = 1;
   }
-  else if (rRatio > gRatio && rRatio > bRatio) {
+  else if ((rRatio > 0.47 && gRatio < 0.27) || (rRatio > gRatio && rRatio > bRatio)) {
     // red
     //Serial.println("red");
     analogWrite(redLED, 50);
@@ -626,7 +626,7 @@ void checkColor(unsigned long red, unsigned long green, unsigned long blue) {
     color = 2;
   }
   
-  else if (gRatio > rRatio && gRatio > bRatio) {
+  else if ((rRatio > 0.34 && gRatio >= 0.35 && bRatio <= 0.30) || (gRatio > rRatio && gRatio > bRatio)) {
     // green
     //Serial.println("green");
     analogWrite(redLED, 0);
