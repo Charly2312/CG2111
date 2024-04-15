@@ -29,12 +29,12 @@ volatile TDirection dir;
 
 // Calibration Values - 3cm between sensor and color paper
 // *Get these from Calibration Sketch
-unsigned long redMin = 210; //190; // Red minimum value
-unsigned long redMax = 600; //810; // Red maximum value
-unsigned long greenMin = 110; //185; // Green minimum value
-unsigned long greenMax = 720; //800; // Green maximum value
-unsigned long blueMin = 90; //155; // Blue minimum value
-unsigned long blueMax = 610; //644; // Blue maximum value
+unsigned long redMin = 410; //190; // Red minimum value
+unsigned long redMax = 750; //810; // Red maximum value
+unsigned long greenMin = 370; //185; // Green minimum value
+unsigned long greenMax = 610; //800; // Green maximum value
+unsigned long blueMin = 310; //155; // Blue minimum value
+unsigned long blueMax = 550; //644; // Blue maximum value
 
 uint32_t color = 0;
 
@@ -168,7 +168,7 @@ void sendStatus() {
   statusPacket.params[12] = greenValue;
   statusPacket.params[13] = blueValue;
 
-  //statusPacket.params[14] = getDistance();
+  statusPacket.params[14] = getDistance();
   sendResponse(&statusPacket);
 }
 
@@ -655,8 +655,7 @@ void checkColor(unsigned long red, unsigned long green, unsigned long blue) {
     // Serial.println("white");
     color = 1;
     shineWhite();
-    delay(3000);
-    mp3.play_track(1);
+    mp3.play_track(5);
     delay(3000);
   }
   else if (rRatio > gRatio && rRatio > bRatio) {
@@ -664,17 +663,15 @@ void checkColor(unsigned long red, unsigned long green, unsigned long blue) {
     //Serial.println("red");
     color = 2;
     shineRed();
-    delay(3000);
-    mp3.play_track(2);
+    mp3.play_track(4);
     delay(4000);
   }
   
-  else if (gRatio > bRatio && gRatio > rRatio) {
+  else if (rRatio < 0.5 && gRatio > bRatio && gRatio > rRatio) {
     // green
     //Serial.println("green");
     color = 3;
     shineGreen();
-    delay(3000);
     mp3.play_track(3);
     delay(4000);
   }
