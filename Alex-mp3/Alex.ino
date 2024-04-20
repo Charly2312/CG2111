@@ -30,14 +30,14 @@ volatile TDirection dir;
 // Calibration Values - 3cm between sensor and color paper
 // *Get these from Calibration Sketch
 //distance is 10 - 11 cm
-//blackPW = 408, 396, 330
-//whitePW = 260, 270, 230
-unsigned long redMin = 260; //190; // Red minimum value
-unsigned long redMax = 408; //810; // Red maximum value
-unsigned long greenMin = 270; //185; // Green minimum value
-unsigned long greenMax = 396; //800; // Green maximum value
-unsigned long blueMin = 230; //155; // Blue minimum value
-unsigned long blueMax = 330; //644; // Blue maximum value
+//blackPW = 890, 865, 680
+//whitePW = 460, 485, 390
+unsigned long redMin = 460; //190; // Red minimum value
+unsigned long redMax = 890; //810; // Red maximum value
+unsigned long greenMin = 485; //185; // Green minimum value
+unsigned long greenMax = 865; //800; // Green maximum value
+unsigned long blueMin = 390; //155; // Blue minimum value
+unsigned long blueMax = 680; //644; // Blue maximum value
 
 uint32_t color = 0;
 
@@ -645,38 +645,38 @@ void checkColor(unsigned long red, unsigned long green, unsigned long blue) {
   float rRatio = fabs(red/sum);
   float gRatio = fabs(green/sum);
   float bRatio = fabs(blue/sum);
-  Serial.print("RedRatio = ");
+  /*Serial.print("RedRatio = ");
 	Serial.print(rRatio);
 	Serial.print(" - GreenRatio = ");
 	Serial.print(gRatio);
 	Serial.print(" - BlueRatio = ");
-	Serial.println(bRatio);
+	Serial.println(bRatio);*/
   DDRL |= 0b00111000;
 
-  Serial.println(getDistance());
+  //Serial.println(getDistance());
   if (rRatio < 0.4 && gRatio < 0.4 && bRatio < 0.4) { 
     // white
-    Serial.println("white");
+    //Serial.println("white");
     color = 1;
     shineWhite();
-    //mp3.play_track(5);
+    mp3.play_track(5);
     delay(3000);
   }
   else if (rRatio >= 0.39 && rRatio > gRatio && rRatio > bRatio) { // 0.41, 0.30, 0.29 distance is 10 cm 
     // red
-    Serial.println("red");
+    //Serial.println("red");
     color = 2;
     shineRed();
-    //mp3.play_track(4);
+    mp3.play_track(4);
     delay(4000);
   }
   
   else if (rRatio < 0.5 && gRatio > bRatio && gRatio > rRatio) { //0.34, 0.34, 0.32 distance is 7 till 22 cm
     // green
-    Serial.println("green");
+    //Serial.println("green");
     color = 3;
     shineGreen();
-    //mp3.play_track(3);
+    mp3.play_track(3);
     delay(4000);
   }
   //else if ((rRatio >= 0.4 && gRatio > 0.20 && bRatio > 0.35) || (gRatio < 0.3 && bRatio > 0.3)) {
@@ -743,7 +743,7 @@ void loop() {
   
   
   // put your main code here, to run repeatedly:
-  /*TPacket recvPacket;  // This holds commands from the Pi
+  TPacket recvPacket;  // This holds commands from the Pi
 
   TResult result = readPacket(&recvPacket);
 
@@ -794,7 +794,7 @@ void loop() {
       targetTicks = 0;
       stop();
     }
-  }*/
+  }
   //left(50,50);
   //colorSense();
 }
