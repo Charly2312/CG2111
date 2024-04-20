@@ -27,17 +27,16 @@ volatile TDirection dir;
 #define ECHO 20 // yellow // PD1 // PA2
 #define TRIG 21 // orange // PD0 // PA3
 
-// Calibration Values - 3cm between sensor and color paper
 // *Get these from Calibration Sketch
-//distance is 10 - 11 cm
+//distance is 10 - 13 cm
 //blackPW = 890, 865, 680
 //whitePW = 460, 485, 390
-unsigned long redMin = 460; //190; // Red minimum value
-unsigned long redMax = 890; //810; // Red maximum value
-unsigned long greenMin = 485; //185; // Green minimum value
-unsigned long greenMax = 865; //800; // Green maximum value
-unsigned long blueMin = 390; //155; // Blue minimum value
-unsigned long blueMax = 680; //644; // Blue maximum value
+unsigned long redMin = 460; // Red minimum value
+unsigned long redMax = 890; // Red maximum value
+unsigned long greenMin = 485; // Green minimum value
+unsigned long greenMax = 865; // Green maximum value
+unsigned long blueMin = 390; // Blue minimum value
+unsigned long blueMax = 680; // Blue maximum value
 
 uint32_t color = 0;
 
@@ -258,24 +257,6 @@ void sendResponse(TPacket *packet) {
   len = serialize(buffer, packet, sizeof(TPacket));
   writeSerial(buffer, len);
 }
-
-/*void sendColor() { 
-  TPacket statusPacket;
-  status.packetType = PACKET_TYPE_MESSAGE;
-  statusPacket.command = RESP_STATUS;
-  statusPacket.params[0] = leftForwardTicks;
-  statusPacket.params[1] = rightForwardTicks;
-  statusPacket.params[2] = leftReverseTicks;
-  statusPacket.params[3] = rightReverseTicks;
-  statusPacket.params[4] = leftForwardTicksTurns;
-  statusPacket.params[5] = rightForwardTicksTurns;
-  statusPacket.params[6] = leftReverseTicksTurns;
-  statusPacket.params[7] = rightReverseTicksTurns;
-  statusPacket.params[8] = forwardDist;
-  statusPacket.params[9] = reverseDist;
-  statusPacket.params[10] = color;
-  sendResponse(&statusPacket); 
-} */
 
 /*
  * Setup and start codes for external interrupts and 
@@ -575,9 +556,9 @@ void handlePacket(TPacket *packet) {
 // Function to read Red Pulse Widths
 unsigned long getRedPW() {
 	// Set sensor to read Red only
-  PORTC &= 0b11100111;
-	//digitalWrite(S2,LOW);
+  //digitalWrite(S2,LOW);
 	//digitalWrite(S3,LOW);
+  PORTC &= 0b11100111;
 	// Define integer to represent Pulse Width
 	unsigned long PW;
 	// Read the output Pulse Width
@@ -589,9 +570,9 @@ unsigned long getRedPW() {
 // Function to read Green Pulse Widths
 unsigned long getGreenPW() {
 	// Set sensor to read Green only
-  PORTC |= 0b00011000;
-	//digitalWrite(S2,HIGH);
+  //digitalWrite(S2,HIGH);
 	//digitalWrite(S3,HIGH);
+  PORTC |= 0b00011000;
 	// Define integer to represent Pulse Width
 	unsigned long PW;
 	// Read the output Pulse Width
@@ -603,10 +584,10 @@ unsigned long getGreenPW() {
 // Function to read Blue Pulse Widths
 unsigned long getBluePW() {
 	// Set sensor to read Blue only
-	PORTC &= 0b11101111;
-  PORTC |= 0b00001000;
   //digitalWrite(S2,LOW);
 	//digitalWrite(S3,HIGH);
+	PORTC &= 0b11101111;
+  PORTC |= 0b00001000;
 	// Define integer to represent Pulse Width
 	unsigned long PW;
 	// Read the output Pulse Width
@@ -679,25 +660,16 @@ void checkColor(unsigned long red, unsigned long green, unsigned long blue) {
     mp3.play_track(3);
     delay(4000);
   }
-  //else if ((rRatio >= 0.4 && gRatio > 0.20 && bRatio > 0.35) || (gRatio < 0.3 && bRatio > 0.3)) {
-    // purple
-  //  Serial.println("purple");}
-  //else if (rRatio < 0.4 && bRatio >= 0.35) {
-    // blue
-  //  Serial.println("blue");}
-  //else if (rRatio > 0.45 && gRatio < 0.3) {
-    // orange
-  //  Serial.println("orange");} 
   delay(500);
   DDRL &= 0b11000111;
 }
 
 uint32_t getDistance() {
-  PORTD |= 0b00000001;
   //digitalWrite(TRIG, HIGH);
+  PORTD |= 0b00000001;
   delay(100);
-  PORTD &= 0b11111110;
   //digitalWrite(TRIG, LOW);
+  PORTD &= 0b11111110;
   float microsecs = pulseIn(ECHO, HIGH);
   uint32_t cms = (uint32_t)(microsecs * 0.0345 / 2);
   return cms; 
@@ -725,12 +697,12 @@ void colorSense() { //max distance is 13cm
 	// Delay to stabilize sensor
 	delay(200);
 
-  /*Serial.print("RedPW = ");
-	Serial.print(redPW);
-	Serial.print(" - GreenPW = ");
-	Serial.print(greenPW);
-	Serial.print(" - BluePW = ");
-	Serial.println(bluePW);*/
+  /*Serial.print("Red = ");
+	Serial.print(redValue);
+	Serial.print(" - Green = ");
+	Serial.print(greenValue);
+	Serial.print(" - Blue = ");
+	Serial.println(blueValue);*/
   
   checkColor(redValue, greenValue, blueValue); 
 }
