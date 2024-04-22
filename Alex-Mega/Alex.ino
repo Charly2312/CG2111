@@ -1,11 +1,44 @@
+
 #include <serialize.h>
 #include <stdarg.h>
 #include <math.h>
+#include <string.h>
 
 #include "packet.h"
 #include "constants.h"
+#include "mp3.h"
+
+MP3 mp3;
 
 volatile TDirection dir;
+
+// TCS230 or TCS3200 pins wiring to Arduino
+#define S0 32 // PC5
+#define S1 31 // PC6
+#define S2 33 // PC4
+#define S3 34 // PC3
+#define sensorOut 41 // PG0
+
+// LED pins
+#define blueLED 46 // PL3
+#define redLED 45 // PL4
+#define greenLED 44 // PL5
+
+#define ECHO 20 // yellow // PD1 // PA2
+#define TRIG 21 // orange // PD0 // PA3
+
+// *Get these from Calibration Sketch
+//distance is 10 - 13 cm
+//blackPW = 890, 865, 680
+//whitePW = 460, 485, 390
+unsigned long redMin = 460; // Red minimum value
+unsigned long redMax = 890; // Red maximum value
+unsigned long greenMin = 485; // Green minimum value
+unsigned long greenMax = 865; // Green maximum value
+unsigned long blueMin = 390; // Blue minimum value
+unsigned long blueMax = 680; // Blue maximum value
+
+uint32_t color = 0;
 
 //PI, for calculating circumference
 #define PI 3.141592654
@@ -38,6 +71,9 @@ float alexCirc = PI * alexDiagonal;
 
 #define WHEEL_CIRC 22
 
+/*
+ *    Alex's State Variables
+ */
 
 // Store the ticks from Alex's left and
 // right encoders.
@@ -71,12 +107,17 @@ unsigned long newDist;
 unsigned long deltaTicks;
 unsigned long targetTicks;
 
+// Variables for Color Pulse Width Measurements
+volatile unsigned long redPW = 0;
+volatile unsigned long greenPW = 0;
+volatile unsigned long bluePW = 0;
 
-/*
- *    Alex's State Variables
- */
+// Variables for final Color values
+volatile unsigned long redValue;
+volatile unsigned long greenValue;
+volatile unsigned long blueValue;
 
-
+float distance = 0.0;
 
 /*
  * 
@@ -94,11 +135,10 @@ TResult readPacket(TPacket *packet) {
 
   len = readSerial(buffer);
 
-  if (len == 0) {
+  if (len == 0)
     return PACKET_INCOMPLETE;
-  } else {
+  else
     return deserialize(buffer, len, packet);
-  }
 }
 
 void sendStatus() {
@@ -124,6 +164,22 @@ void sendStatus() {
   statusPacket.params[8] = forwardDist;
   statusPacket.params[9] = reverseDist;
 
+  colorSense();
+  statusPacket.params[10] = color;
+  statusPacket.params[11] = redValue;
+  statusPacket.params[12] = greenValue;
+  statusPacket.params[13] = blueValue;
+
+  statusPacket.params[14] = getDistance();
+  sendResponse(&statusPacket);
+}
+
+void sendDist() {
+  TPacket statusPacket;
+  statusPacket.packetType = PACKET_TYPE_RESPONSE;
+  statusPacket.command = RESP_DISTANCE;
+
+  statusPacket.params[14] = getDistance();
   sendResponse(&statusPacket);
 }
 
@@ -147,8 +203,6 @@ void dbprintf(char *format, ...) {
   vsprintf(buffer, format, args);
   sendMessage(buffer);
 }
-
-
 
 void sendBadPacket() {
   // Tell the Pi that it sent us a packet with a bad
@@ -204,7 +258,6 @@ void sendResponse(TPacket *packet) {
   writeSerial(buffer, len);
 }
 
-
 /*
  * Setup and start codes for external interrupts and 
  * pullup resistors.
@@ -243,7 +296,7 @@ ISR(INT3_vect) {  //leftISR
       break;
 
     //Alex is moving to the right
-    //increment rightReverseTicksTurns
+    //increment RightReverseTicksTurns
     case RIGHT:
       leftForwardTicksTurns++;
       break;
@@ -265,17 +318,43 @@ ISR(INT2_vect) {  //rightISR
       break;
 
     //Alex is moving to the left
-    //increment rightForwardTicksTurns
+    //increment rightReverseTicksTurns
     case LEFT:
       rightForwardTicksTurns++;
       break;
 
     //Alex is moving to the right
-    //increment rightReverseTicksTurns
+    //increment rightForwardTicksTurns
     case RIGHT:
       rightReverseTicksTurns++;
       break;
   }
+}
+
+void setupColor() {
+  // Set S0 - S3 as outputs
+	DDRC |= 0b01111000;
+  //pinMode(S0, OUTPUT);
+	//pinMode(S1, OUTPUT);
+	//pinMode(S2, OUTPUT);
+	//pinMode(S3, OUTPUT);
+
+  // Offing LED
+  DDRL &= 0b11000111;
+
+	// Set Sensor output as input
+  DDRG &= 0b11111110;
+	//pinMode(sensorOut, INPUT);
+
+	// Set Frequency scaling to 20%
+  PORTC |= 0b00100000;
+  PORTC &= 0b10111111;
+	//digitalWrite(S0,HIGH);
+	//digitalWrite(S1,LOW);
+
+  DDRD |= 0b00000001;
+  DDRD &= 0b11111101;	
+	// Setup Serial Monitor
 }
 
 // Set up the external interrupt pins INT2 and INT3
@@ -307,8 +386,24 @@ void setupEINT() {
 // with bare-metal code.
 void setupSerial() {
   // To replace later with bare-metal.
-  Serial.begin(9600);
   // Change Serial to Serial2/Serial3/Serial4 in later labs when using the other UARTs
+  // Setting the baud rate to 9600
+  //Serial.begin(9600);
+  unsigned int b;
+  b = (unsigned int) round(16000000 / (16.0 * 9600)) - 1; //by right gives 103
+  UBRR0H = (unsigned char) (b >> 8);
+  UBRR0L = (unsigned char) b;
+  
+  //Running in asynchronous mode
+  //No parity so bits 5 and 4 are 00
+  //1 stop bit so bit 3 is 0
+  //8 data bits so UCSZ[2:0] is 011
+  //bit 0 is always 0
+  UCSR0C |= (1 << UCSZ01) | (1 << UCSZ00);
+  
+  //zero in every bit to prevent data corruption especially U2X0 and MPCM0
+  //to prevent us from doubling the transmission speed and enabling multiprocesser mode
+  UCSR0A = 0;
 }
 
 // Start the serial connection. For now we are using
@@ -318,6 +413,8 @@ void setupSerial() {
 void startSerial() {
   // Empty for now. To be replaced with bare-metal code
   // later on.
+  // Enabling the receiver and transmitter directly by setting bit 3 and 4
+  UCSR0B = 0b00011000;
 }
 
 // Read the serial port. Returns the read character in
@@ -327,11 +424,11 @@ void startSerial() {
 int readSerial(char *buffer) {
 
   int count = 0;
-
   // Change Serial to Serial2/Serial3/Serial4 in later labs when using other UARTs
 
-  while (Serial.available())
-    buffer[count++] = Serial.read();
+  //We wait until RXC0 is set to 1, which means USART has received data
+  while (UCSR0A & 0b10000000) == 0) 
+  buffer[count++] = UDR0;
 
   return count;
 }
@@ -340,7 +437,10 @@ int readSerial(char *buffer) {
 // bare-metal code
 
 void writeSerial(const char *buffer, int len) {
-  Serial.write(buffer, len);
+  //Serial.write(buffer, len);
+  for (int i = 0; i < len; i ++) {
+    UDR0 = buffer[i];
+  }
   // Change Serial to Serial2/Serial3/Serial4 in later labs when using other UARTs
 }
 
@@ -406,6 +506,9 @@ void handleCommand(TPacket *command) {
       sendOK();
       clearOneCounter(command->params[0]);
       break;
+    case COMMAND_GET_DISTANCE:
+      sendOK();
+      sendDist();
 
     default:
       sendBadCommand();
@@ -427,9 +530,8 @@ void waitForHello() {
       if (hello.packetType == PACKET_TYPE_HELLO) {
         sendOK();
         exit = 1;
-      } else {
+      } else
         sendBadResponse();
-      }
     } else if (result == PACKET_BAD) {
       sendBadPacket();
     } else if (result == PACKET_CHECKSUM_BAD)
@@ -439,15 +541,17 @@ void waitForHello() {
 
 void setup() {
   // put your setup code here, to run once:
-  alexDiagonal = sqrt((ALEX_LENGTH * ALEX_LENGTH) + (ALEX_BREADTH * ALEX_BREADTH));
-
+	alexDiagonal = sqrt((ALEX_LENGTH * ALEX_LENGTH) + (ALEX_BREADTH * ALEX_BREADTH));
   cli();
+  setupColor();
   setupEINT();
   setupSerial();
   startSerial();
   enablePullups();
   initializeState();
   sei();
+  mp3.begin();
+  mp3.volume(30);
 }
 
 void handlePacket(TPacket *packet) {
@@ -470,12 +574,167 @@ void handlePacket(TPacket *packet) {
   }
 }
 
+// Function to read Red Pulse Widths
+unsigned long getRedPW() {
+	// Set sensor to read Red only
+  //digitalWrite(S2,LOW);
+	//digitalWrite(S3,LOW);
+  PORTC &= 0b11100111;
+	// Define integer to represent Pulse Width
+	unsigned long PW;
+	// Read the output Pulse Width
+	PW = pulseIn(sensorOut, LOW);
+	// Return the value
+	return PW;
+}
+
+// Function to read Green Pulse Widths
+unsigned long getGreenPW() {
+	// Set sensor to read Green only
+  //digitalWrite(S2,HIGH);
+	//digitalWrite(S3,HIGH);
+  PORTC |= 0b00011000;
+	// Define integer to represent Pulse Width
+	unsigned long PW;
+	// Read the output Pulse Width
+	PW = pulseIn(sensorOut, LOW);
+	// Return the value
+	return PW;
+}
+
+// Function to read Blue Pulse Widths
+unsigned long getBluePW() {
+	// Set sensor to read Blue only
+  //digitalWrite(S2,LOW);
+	//digitalWrite(S3,HIGH);
+	PORTC &= 0b11101111;
+  PORTC |= 0b00001000;
+	// Define integer to represent Pulse Width
+	unsigned long PW;
+	// Read the output Pulse Width
+	PW = pulseIn(sensorOut, LOW);
+	// Return the value
+	return PW;
+}
+
+void shineWhite() {
+  //change 245 to 0 for all
+  analogWrite(redLED, 0); 
+  analogWrite(greenLED, 0); 
+  analogWrite(blueLED, 0);  
+}
+
+void shineRed() {
+  analogWrite(redLED, 50);
+  analogWrite(greenLED, 255);
+  analogWrite(blueLED, 255);
+}
+
+void shineGreen() {
+  analogWrite(redLED, 200);
+  analogWrite(greenLED, 0);
+  analogWrite(blueLED, 255);
+}
+
+void offLED() {
+  analogWrite(redLED, 0);
+  analogWrite(greenLED, 0);
+  analogWrite(blueLED, 0);
+}
+
+void checkColor(unsigned long red, unsigned long green, unsigned long blue) {
+  float sum = (float)(red+green+blue);
+  float rRatio = fabs(red/sum);
+  float gRatio = fabs(green/sum);
+  float bRatio = fabs(blue/sum);
+  /*Serial.print("RedRatio = ");
+	Serial.print(rRatio);
+	Serial.print(" - GreenRatio = ");
+	Serial.print(gRatio);
+	Serial.print(" - BlueRatio = ");
+	Serial.println(bRatio);*/
+  DDRL |= 0b00111000;
+
+  //Serial.println(getDistance());
+  if (rRatio < 0.4 && gRatio < 0.4 && bRatio < 0.4) { 
+    // white
+    //Serial.println("white");
+    color = 1;
+    shineWhite();
+    mp3.play_track(5);
+    delay(3000);
+  }
+  else if (rRatio >= 0.39 && rRatio > gRatio && rRatio > bRatio) { // 0.41, 0.30, 0.29 distance is 10 cm 
+    // red
+    //Serial.println("red");
+    color = 2;
+    shineRed();
+    mp3.play_track(4);
+    delay(4000);
+  }
+  
+  else if (rRatio < 0.5 && gRatio > bRatio && gRatio > rRatio) { //0.34, 0.34, 0.32 distance is 7 till 22 cm
+    // green
+    //Serial.println("green");
+    color = 3;
+    shineGreen();
+    mp3.play_track(3);
+    delay(4000);
+  }
+  delay(500);
+  DDRL &= 0b11000111;
+}
+
+uint32_t getDistance() {
+  //digitalWrite(TRIG, HIGH);
+  PORTD |= 0b00000001;
+  delay(100);
+  //digitalWrite(TRIG, LOW);
+  PORTD &= 0b11111110;
+  float microsecs = pulseIn(ECHO, HIGH);
+  uint32_t cms = (uint32_t)(microsecs * 0.0345 / 2);
+  return cms; 
+}
+
+void colorSense() { //max distance is 13cm
+  // Read Red value
+	redPW = getRedPW();
+	// Map to value from 0-255
+	redValue = abs(map(redPW, redMin,redMax,255,0));
+	// Delay to stabilize sensor
+	delay(200);
+
+	// Read Green value
+	greenPW = getGreenPW();
+	// Map to value from 0-255
+	greenValue = abs(map(greenPW, greenMin,greenMax,255,0));
+	// Delay to stabilize sensor
+	delay(200);
+
+	// Read Blue value
+	bluePW = getBluePW();
+	// Map to value from 0-255
+	blueValue = abs(map(bluePW, blueMin,blueMax,255,0));
+	// Delay to stabilize sensor
+	delay(200);
+
+  /*Serial.print("Red = ");
+	Serial.print(redValue);
+	Serial.print(" - Green = ");
+	Serial.print(greenValue);
+	Serial.print(" - Blue = ");
+	Serial.println(blueValue);*/
+  
+  checkColor(redValue, greenValue, blueValue); 
+}
+
 void loop() {
   // Uncomment the code below for Step 2 of Activity 3 in Week 8 Studio 2
   //forward(0, 100);
+
   // Uncomment the code below for Week 9 Studio 2
-
-
+  
+  
   // put your main code here, to run repeatedly:
   TPacket recvPacket;  // This holds commands from the Pi
 
@@ -489,7 +748,7 @@ void loop() {
     sendBadChecksum();
   }
 
-
+  //error occurs when we call the function
   if (deltaDist > 0) {
     if (dir == FORWARD) {
       if (forwardDist > newDist) {
@@ -529,4 +788,6 @@ void loop() {
       stop();
     }
   }
+  //left(50,50);
+  //colorSense();
 }
