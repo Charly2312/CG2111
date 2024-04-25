@@ -24,8 +24,8 @@ volatile TDirection dir;
 #define redLED 45 // PL4
 #define greenLED 44 // PL5
 
-#define ECHO 20 // yellow // PD1 // PA2
-#define TRIG 21 // orange // PD0 // PA3
+#define ECHO 20 // yellow // PD1
+#define TRIG 21 // orange // PD0
 
 // *Get these from Calibration Sketch
 //distance is 10 - 13 cm
