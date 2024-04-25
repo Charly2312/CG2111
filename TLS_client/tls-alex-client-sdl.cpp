@@ -266,9 +266,7 @@ void *writerThread(void *conn)
 				printf("Stop\n");
 				ch = '.'; // Stop after moving case
 				break;
-			} /*else {
-				ch = '/';
-			} */
+			} 
 		}
 
 		if (!sending_status && !waiting_for_data && ch != '/')  {
