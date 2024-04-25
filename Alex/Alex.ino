@@ -437,7 +437,9 @@ int readSerial(char *buffer) {
   // Change Serial to Serial2/Serial3/Serial4 in later labs when using other UARTs
 
   //We wait until RXC0 is set to 1, which means USART has received data
-  while (UCSR0A & 0b10000000) == 0) 
+  while (UCSR0A & 0b10000000) == 0);
+
+  //read data 
   buffer[count++] = UDR0;
 
   return count;
@@ -448,6 +450,10 @@ int readSerial(char *buffer) {
 
 void writeSerial(const char *buffer, int len) {
   //Serial.write(buffer, len);
+  //Waiting for UDRE0 is set to 1 which signifies that UDR0 is empty
+  while((UCSR0A & 0b00100000) == 0);
+
+  //Now send data
   for (int i = 0; i < len; i ++) {
     UDR0 = buffer[i];
   }
