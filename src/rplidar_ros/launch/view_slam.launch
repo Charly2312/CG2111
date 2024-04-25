@@ -4,7 +4,11 @@
   It requires rplidar.launch.
  -->
 <launch>
-  <include file="$(find rplidar_ros)/launch/rplidar.launch" />
-  <include file="$(find rplidar_ros)/launch/hectormapping.launch" />
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find rplidar_ros)/rviz/slam.rviz" />
+  <!-- Added to demarcate Alex -->
+	
+  <node pkg="tf2_ros" type="static_transform_publisher" name="alex_tr" args="0.11 -0.1 0 0 0 0 laser topRight" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="alex_tl" args="0.11 0.1 0 0 0 0 laser topLeft" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="alex_br" args="-0.165 -0.1 0 0 0 0 laser bottomRight" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="alex_bl" args="-0.165 0.1 0 0 0 0 laser bottomLeft" />
 </launch>
