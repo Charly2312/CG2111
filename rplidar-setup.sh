@@ -10,5 +10,4 @@ source ~/cg2111a/devel/setup.bash
 export ROS_MASTER_URI=http://$1:11311
 export ROS_HOSTNAME=$2
 
-#roslaunch rplidar_ros start_nodes_2.launch &
 roslaunch rplidar_ros start_nodes.launch &
