@@ -1,2 +1,1 @@
-The design report B3-6B
-https://docs.google.com/document/d/1PT6mW37n8KsAJTUCuTiyJbB5ZB4BD7Tb/edit
+Welcome to B03-6B Repo for EPP2 - Alex, we tried our best to organise this repo but we are noobs
