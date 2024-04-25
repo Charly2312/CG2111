@@ -203,9 +203,7 @@ void sendMessage(const char *message) {
   sendResponse(&messagePacket);
 }
 
-//from week 9 studio 1
 //only use dbprintf for debug printing
-//DO NOT USE SERIAL.WRITE
 void dbprintf(char *format, ...) {
   va_list args;
   char buffer[128];
@@ -341,6 +339,10 @@ ISR(INT2_vect) {  //rightISR
   }
 }
 
+/*
+ *    Setup port registers
+ */
+
 void setupColor() {
   // Set S0 - S3 as outputs
 	DDRC |= 0b01111000;
@@ -385,12 +387,6 @@ void setupEINT() {
 // should call rightISR.
 
 
-// Implement INT2 and INT3 ISRs above.
-
-/*
- * Setup and start codes for serial communications
- * 
- */
 // Set up the serial connection. For now we are using
 // Arduino Wiring, you will replace this later
 // with bare-metal code.
@@ -445,9 +441,6 @@ int readSerial(char *buffer) {
   return count;
 }
 
-// Write to the serial port. Replaced later with
-// bare-metal code
-
 void writeSerial(const char *buffer, int len) {
   //Serial.write(buffer, len);
   //Waiting for UDRE0 is set to 1 which signifies that UDR0 is empty
@@ -459,11 +452,6 @@ void writeSerial(const char *buffer, int len) {
   }
   // Change Serial to Serial2/Serial3/Serial4 in later labs when using other UARTs
 }
-
-/*
- * Alex's setup and run codes
- * 
- */
 
 // Clears all our counters
 void clearCounters() {
@@ -607,8 +595,6 @@ unsigned long getRedPW() {
 // Function to read Green Pulse Widths
 unsigned long getGreenPW() {
 	// Set sensor to read Green only
-  //digitalWrite(S2,HIGH);
-	//digitalWrite(S3,HIGH);
   PORTC |= 0b00011000;
 	// Define integer to represent Pulse Width
 	unsigned long PW;
@@ -621,8 +607,6 @@ unsigned long getGreenPW() {
 // Function to read Blue Pulse Widths
 unsigned long getBluePW() {
 	// Set sensor to read Blue only
-  //digitalWrite(S2,LOW);
-	//digitalWrite(S3,HIGH);
 	PORTC &= 0b11101111;
   PORTC |= 0b00001000;
 	// Define integer to represent Pulse Width
@@ -657,18 +641,12 @@ void checkColor(unsigned long red, unsigned long green, unsigned long blue) {
   float rRatio = fabs(red/sum);
   float gRatio = fabs(green/sum);
   float bRatio = fabs(blue/sum);
-  /*Serial.print("RedRatio = ");
-	Serial.print(rRatio);
-	Serial.print(" - GreenRatio = ");
-	Serial.print(gRatio);
-	Serial.print(" - BlueRatio = ");
-	Serial.println(bRatio);*/
+
   DDRL |= 0b00111000;
 
   //Serial.println(getDistance());
   if (rRatio < 0.4 && gRatio < 0.4 && bRatio < 0.4) { 
     // white
-    //Serial.println("white");
     color = 1;
     shineWhite();
     mp3.play_track(5);
@@ -676,7 +654,6 @@ void checkColor(unsigned long red, unsigned long green, unsigned long blue) {
   }
   else if (rRatio >= 0.39 && rRatio > gRatio && rRatio > bRatio) { // 0.41, 0.30, 0.29 distance is 10 cm 
     // red
-    //Serial.println("red");
     color = 2;
     shineRed();
     mp3.play_track(4);
@@ -685,12 +662,12 @@ void checkColor(unsigned long red, unsigned long green, unsigned long blue) {
   
   else if (rRatio < 0.5 && gRatio > bRatio && gRatio > rRatio) { //0.34, 0.34, 0.32 distance is 7 till 22 cm
     // green
-    //Serial.println("green");
     color = 3;
     shineGreen();
     mp3.play_track(3);
     delay(4000);
   }
+
   delay(500);
   DDRL &= 0b11000111;
 }
@@ -699,7 +676,6 @@ uint32_t getDistance() {
   //digitalWrite(TRIG, HIGH);
   PORTD |= 0b00000001;
   delay(100);
-  //digitalWrite(TRIG, LOW);
   PORTD &= 0b11111110;
   float microsecs = pulseIn(ECHO, HIGH);
   uint32_t cms = (uint32_t)(microsecs * 0.0345 / 2);
@@ -713,39 +689,25 @@ void colorSense() { //max distance is 13cm
 	redValue = abs(map(redPW, redMin,redMax,255,0));
 	// Delay to stabilize sensor
 	delay(200);
-
+	
 	// Read Green value
 	greenPW = getGreenPW();
 	// Map to value from 0-255
 	greenValue = abs(map(greenPW, greenMin,greenMax,255,0));
 	// Delay to stabilize sensor
 	delay(200);
-
+	
 	// Read Blue value
 	bluePW = getBluePW();
 	// Map to value from 0-255
 	blueValue = abs(map(bluePW, blueMin,blueMax,255,0));
 	// Delay to stabilize sensor
 	delay(200);
-
-  /*Serial.print("Red = ");
-	Serial.print(redValue);
-	Serial.print(" - Green = ");
-	Serial.print(greenValue);
-	Serial.print(" - Blue = ");
-	Serial.println(blueValue);*/
   
   checkColor(redValue, greenValue, blueValue); 
 }
 
 void loop() {
-  // Uncomment the code below for Step 2 of Activity 3 in Week 8 Studio 2
-  //forward(0, 100);
-
-  // Uncomment the code below for Week 9 Studio 2
-  
-  
-  // put your main code here, to run repeatedly:
   TPacket recvPacket;  // This holds commands from the Pi
 
   TResult result = readPacket(&recvPacket);
