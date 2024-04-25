@@ -164,13 +164,19 @@ void sendStatus() {
   statusPacket.params[8] = forwardDist;
   statusPacket.params[9] = reverseDist;
 
+  // Start detecting and checking color
+  // The speaker will shout out in response to diff color
+  // result(1-> white, 2 -> red, 3-> green) 
+  // and color values are stored
   colorSense();
   statusPacket.params[10] = color;
   statusPacket.params[11] = redValue;
   statusPacket.params[12] = greenValue;
   statusPacket.params[13] = blueValue;
 
+// store the distance from the closest object in front to prevent collision
   statusPacket.params[14] = getDistance();
+  // send packet
   sendResponse(&statusPacket);
 }
 
