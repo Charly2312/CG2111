@@ -42,7 +42,6 @@ typedef enum {
   COMMAND_GET_DISTANCE = 7
 } TCommandType;
 
-//week 9 studio 1
 typedef enum {
   FORWARD = 1,
   BACKWARD = 2,
