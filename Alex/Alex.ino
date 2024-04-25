@@ -641,20 +641,14 @@ void shineWhite() {
 }
 
 void shineRed() {
-  analogWrite(redLED, 50);
-  analogWrite(greenLED, 255);
-  analogWrite(blueLED, 255);
+  analogWrite(redLED, 255);
+  analogWrite(greenLED, 0);
+  analogWrite(blueLED, 0);
 }
 
 void shineGreen() {
-  analogWrite(redLED, 200);
-  analogWrite(greenLED, 0);
-  analogWrite(blueLED, 255);
-}
-
-void offLED() {
   analogWrite(redLED, 0);
-  analogWrite(greenLED, 0);
+  analogWrite(greenLED, 255);
   analogWrite(blueLED, 0);
 }
 
